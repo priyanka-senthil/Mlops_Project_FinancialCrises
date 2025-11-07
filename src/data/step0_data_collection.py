@@ -142,130 +142,141 @@ def fetch_fred_raw():
 
 # STEP 2: FETCH MARKET DATA
 def fetch_market_raw():
-    """Fetch market data (VIX, S&P 500) - save RAW (no processing)"""
-
+    """Fetch market data (VIX, S&P 500) with fallback to existing market_raw.csv"""
     print("\n" + "="*70)
-    print("STEP 2/4: FETCHING MARKET DATA")
+    print("STEP 2/4: FETCHING MARKET DATA (using fallback to market_raw.csv)")
     print("="*70)
     print(f"Period: {START_DATE} to {END_DATE}")
-    print(f"Indicators: VIX, S&P 500")
-    print()
+    print(f"Indicators: VIX, S&P 500\n")
 
     market_data = {}
-    successful = 0
-    failed = []
+    successful, failed = 0, []
 
     for ticker, name in MARKET_TICKERS.items():
         try:
             print(f"  {name:30} ({ticker})...", end=" ", flush=True)
+            # Primary attempt
             data = yf.download(ticker, start=START_DATE, end=END_DATE, progress=False)
 
-            if not data.empty and 'Close' in data.columns:
-                close_data = data['Close']
-                if isinstance(close_data, pd.DataFrame):
-                    close_data = close_data.iloc[:, 0]
+            # Fallback 1: pandas_datareader
+            if data.empty or 'Close' not in data.columns:
+                print("yfinance failed — trying pandas_datareader...", end=" ", flush=True)
+                data = pdr.get_data_yahoo(ticker, START_DATE, END_DATE)
 
-                market_data[name] = close_data
-                print(f"OK {len(data):,} records")
-                successful += 1
-            else:
-                print(f"FAILED: No data")
+            if data.empty or 'Close' not in data.columns:
+                print("No online data for", name)
                 failed.append(ticker)
+                continue
 
+            close_data = data['Close']
+            if isinstance(close_data, pd.DataFrame):
+                close_data = close_data.iloc[:, 0]
+            market_data[name] = close_data
+            print(f"✅ OK {len(close_data):,} records")
+            successful += 1
             time.sleep(1)
+
         except Exception as e:
-            print(f"FAILED: {str(e)[:40]}")
+            print(f"FAILED: {str(e)[:60]}")
             failed.append(ticker)
 
+    # --- If all fail, load from existing market_raw.csv ---
     if not market_data:
-        raise ValueError("ERROR: No market data collected")
+        local_path = RAW_DIR / "market_raw.csv"
+        if local_path.exists():
+            print("\nAll API calls failed — loading existing market_raw.csv")
+            df_market = pd.read_csv(local_path, index_col=0, parse_dates=True)
+            print(f"✅ Loaded cached file: {local_path}")
+            print(f"Shape: {df_market.shape}")
+            return df_market
+        else:
+            raise ValueError("ERROR: No market data collected and no local market_raw.csv found")
 
+    # Combine & save new file
     df_market = pd.DataFrame(market_data)
-
-    print(f"\nMarket Data Summary:")
-    print(f"  Shape: {df_market.shape[0]:,} rows x {df_market.shape[1]} columns")
-    print(f"  Success: {successful}/{len(MARKET_TICKERS)}")
-    if failed:
-        print(f"  Failed: {', '.join(failed)}")
-    print(f"  Date range: {df_market.index.min()} to {df_market.index.max()}")
-    print(f"  Missing values: {df_market.isna().sum().sum():,}")
-
-    output_path = RAW_DIR / 'market_raw.csv'
+    output_path = RAW_DIR / "market_raw.csv"
     df_market.to_csv(output_path)
     print(f"\nSaved: {output_path}")
-    print(f"Size: {output_path.stat().st_size / (1024*1024):.2f} MB")
+    print(f"Shape: {df_market.shape}")
+    print(f"Size: {output_path.stat().st_size / (1024*1024):.2f} MB\n")
 
     return df_market
 
-# STEP 3: FETCH COMPANY PRICES
-def fetch_company_prices_raw():
-    """Fetch company stock prices - save RAW OHLCV data"""
+# ============================================================
+# STEP 3: FETCH COMPANY PRICE DATA (with fallback)
+# ============================================================
 
+def fetch_company_prices_raw():
+    """Fetch company stock prices with fallback to existing company_prices_raw.csv"""
     print("\n" + "="*70)
-    print("STEP 3/4: FETCHING COMPANY PRICE DATA")
+    print("STEP 3/4: FETCHING COMPANY PRICE DATA (with fallback to company_prices_raw.csv)")
     print("="*70)
     print(f"Period: {START_DATE} to {END_DATE}")
-    print(f"Companies: {len(COMPANIES)}")
-    print()
+    print(f"Companies: {len(COMPANIES)}\n")
 
-    all_data = []
-    successful = 0
-    failed = []
+    all_data, successful, failed = [], 0, []
 
     for i, (ticker, info) in enumerate(COMPANIES.items(), 1):
         try:
             print(f"  [{i:2d}/25] {ticker:6} {info['name']:25}...", end=" ", flush=True)
 
+            # Primary: yfinance
             prices = yf.download(ticker, start=START_DATE, end=END_DATE, progress=False)
 
+            # Fallback 1: pandas_datareader
             if prices.empty:
-                print(f"FAILED: No data")
+                print("yfinance failed — trying pandas_datareader...", end=" ", flush=True)
+                prices = pdr.get_data_yahoo(ticker, START_DATE, END_DATE)
+
+            if prices.empty:
+                print("No online data for", ticker)
                 failed.append(ticker)
                 continue
 
+            # Normalize columns
             if isinstance(prices.columns, pd.MultiIndex):
                 prices.columns = prices.columns.get_level_values(0)
 
             df = pd.DataFrame(index=prices.index)
-            df['Open'] = prices['Open']
-            df['High'] = prices['High']
-            df['Low'] = prices['Low']
-            df['Close'] = prices['Close']
-            df['Volume'] = prices['Volume']
-            df['Adj_Close'] = prices.get('Adj Close', prices['Close'])
+            for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+                if col in prices.columns:
+                    df[col] = prices[col]
+            df['Adj_Close'] = prices.get('Adj Close', df['Close'])
             df['Company'] = ticker
             df['Company_Name'] = info['name']
             df['Sector'] = info['sector']
 
             all_data.append(df)
-            print(f"OK {len(df):,} days")
+            print(f"✅ OK {len(df):,} days")
             successful += 1
-
             time.sleep(0.5)
 
         except Exception as e:
-            print(f"FAILED: {str(e)[:30]}")
+            print(f"FAILED: {str(e)[:60]}")
             failed.append(ticker)
 
+    # --- If all fail, load from existing company_prices_raw.csv ---
     if not all_data:
-        raise ValueError("ERROR: No company price data collected")
+        local_path = RAW_DIR / "company_prices_raw.csv"
+        if local_path.exists():
+            print("\nAll API calls failed — loading existing company_prices_raw.csv")
+            df_all = pd.read_csv(local_path, index_col=0, parse_dates=True)
+            print(f"✅ Loaded cached file: {local_path}")
+            print(f"Shape: {df_all.shape}")
+            return df_all
+        else:
+            raise ValueError("ERROR: No company price data collected and no local company_prices_raw.csv found")
 
+    # Combine & save
     df_all = pd.concat(all_data, axis=0)
-
-    print(f"\nCompany Prices Summary:")
-    print(f"  Total records: {len(df_all):,}")
-    print(f"  Companies: {successful}/{len(COMPANIES)}")
-    if failed:
-        print(f"  Failed: {', '.join(failed)}")
-    print(f"  Date range: {df_all.index.min()} to {df_all.index.max()}")
-    print(f"  Columns: {list(df_all.columns)}")
-
-    output_path = RAW_DIR / 'company_prices_raw.csv'
+    output_path = RAW_DIR / "company_prices_raw.csv"
     df_all.to_csv(output_path)
     print(f"\nSaved: {output_path}")
-    print(f"Size: {output_path.stat().st_size / (1024*1024):.2f} MB")
+    print(f"Shape: {df_all.shape}")
+    print(f"Size: {output_path.stat().st_size / (1024*1024):.2f} MB\n")
 
     return df_all
+
 
 # STEP 4: ALPHA VANTAGE FUNDAMENTALS
 def fetch_alpha_vantage(ticker, function, retry_count=0):
