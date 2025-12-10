@@ -1,22 +1,45 @@
-# Core API
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
+# # Core API Framework
+# fastapi==0.104.1
+# uvicorn[standard]==0.24.0
+# pydantic==2.5.0
 
-# ML Libraries
-scikit-learn==1.3.2
-numpy==1.24.3
+# # Machine Learning - Core
+# scikit-learn==1.3.2
+# numpy==1.24.3
+# pandas==2.1.3
+
+# # Machine Learning - Gradient Boosting (use 3.3.5 for better macOS compatibility)
+# # lightgbm==3.3.5
+
+# # Model Interpretability
+# shap==0.42.1
+
+# # Google Cloud Platform
+# google-cloud-storage==2.10.0
+
+# # Utilities
+# python-multipart==0.0.6
+
+
+# Cloud Functions Framework (replaces FastAPI/Uvicorn)
+functions-framework==3.*
+
+# ML Libraries - Compatible versions
+numpy==1.26.4
 pandas==2.1.3
-lightgbm==4.1.0
+#scikit-learn==1.3.2
+scikit-learn==1.7.2
+lightgbm==4.3.0
 xgboost==2.0.3
+torch==2.1.0
 
 # SHAP for interpretability
-shap==0.42.1
+shap==0.44.1
 
 # GCP
 google-cloud-storage==2.10.0
 
 # Utilities
-python-multipart==0.0.6
 python-json-logger==2.0.7
 requests==2.31.0
+joblib==1.5.2

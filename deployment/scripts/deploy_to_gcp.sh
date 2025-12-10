@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 PROJECT_ID="mlops-434900"  # Update with your project ID
-REGION="us-central1"
+REGION="us-east1"
 SERVICE_NAME="financial-stress-test-api"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
