@@ -1,0 +1,47 @@
+# Virtual Environments (CRITICAL - DO NOT UPLOAD)
+nvenv/
+venv/
+env/
+fenv/
+.venv/
+__pycache__/
+
+# Data files (HUGE - never upload)
+*.csv
+*.xlsx
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+data/
+models/
+outputs/
+datasets/
+
+# Development files
+*.log
+*.db
+*.sqlite
+*.sqlite3
+.DS_Store
+*.md
+README*
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+tests/
+test_*
+*_test.py
+
+# Backup files
+*_backup.py
+*.bak
+*.tmp

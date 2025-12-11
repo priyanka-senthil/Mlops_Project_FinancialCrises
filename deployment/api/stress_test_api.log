@@ -1,0 +1,310 @@
+2025-12-10 19:18:50,990 - model_loader - INFO - ================================================================================
+2025-12-10 19:18:50,990 - model_loader - INFO - 🚀 LOADING ALL MODELS FROM GCS
+2025-12-10 19:18:50,990 - model_loader - INFO - ================================================================================
+2025-12-10 19:18:50,990 - model_loader - INFO - 
+⏳ Loading Model 1...
+2025-12-10 19:18:50,990 - model_loader - INFO - 📥 Loading Model 1: VAE Scenario Generator
+2025-12-10 19:18:51,360 - model_loader - INFO -    ✓ Downloaded: models/vae/deployment/best_model_deployment.pkl
+2025-12-10 19:18:51,365 - model_loader - INFO -    ℹ️  VAE dict keys: ['model', 'scaler', 'feature_names', 'model_name', 'model_type', 'training_date', 'performance_metrics', 'config', 'version', 'deployment_ready']
+2025-12-10 19:18:51,365 - model_loader - INFO -    ✓ Found features under key 'feature_names'
+2025-12-10 19:18:51,365 - model_loader - INFO -    ✓ Found model state under key 'model'
+2025-12-10 19:18:51,365 - model_loader - INFO -    🔧 Reconstructing VAE: input=72, latent=32
+2025-12-10 19:18:51,369 - model_loader - INFO -    ℹ️  Skipped 12 BatchNorm buffer keys (non-critical)
+2025-12-10 19:18:51,369 - model_loader - INFO -    ✅ Loaded VAE from state_dict
+2025-12-10 19:18:51,369 - model_loader - INFO -    ✅ VAE ready with 72 features
+2025-12-10 19:18:52,372 - model_loader - INFO - ✅ Model 1 loaded and stabilized
+2025-12-10 19:18:52,372 - model_loader - INFO - 
+⏳ Loading Model 2...
+2025-12-10 19:18:52,372 - model_loader - INFO - 📥 Loading Model 2: Predictive Models (5 targets)
+2025-12-10 19:18:52,561 - model_loader - INFO -    ✓ Downloaded: models/predictor/revenue_best.pkl
+2025-12-10 19:18:52,591 - model_loader - INFO -    ✓ Found 229 feature names from 'feature_names'
+2025-12-10 19:18:52,591 - model_loader - INFO -    ✓ revenue         loaded
+2025-12-10 19:18:52,856 - model_loader - INFO -    ✓ Downloaded: models/predictor/eps_best.pkl
+2025-12-10 19:18:52,864 - model_loader - INFO -    ✓ eps             loaded
+2025-12-10 19:18:53,051 - model_loader - INFO -    ✓ Downloaded: models/predictor/debt_equity_best.pkl
+2025-12-10 19:18:53,053 - model_loader - INFO -    ✓ debt_equity     loaded
+2025-12-10 19:18:53,228 - model_loader - INFO -    ✓ Downloaded: models/predictor/profit_margin_best.pkl
+2025-12-10 19:18:53,229 - model_loader - INFO -    ✓ profit_margin   loaded
+2025-12-10 19:18:53,403 - model_loader - INFO -    ✓ Downloaded: models/predictor/stock_return_best.pkl
+2025-12-10 19:18:53,404 - model_loader - INFO -    ✓ stock_return    loaded
+2025-12-10 19:18:54,409 - model_loader - INFO - ✅ Model 2 loaded
+2025-12-10 19:18:54,409 - model_loader - INFO - 
+⏳ Loading Model 3...
+2025-12-10 19:18:54,409 - model_loader - INFO - 📥 Loading Model 3: Anomaly Detection
+2025-12-10 19:18:54,606 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/model.pkl
+2025-12-10 19:18:54,691 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/scaler.pkl
+2025-12-10 19:18:54,692 - model_loader - INFO -    ✓ Loaded scaler
+2025-12-10 19:18:54,761 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/features.json
+2025-12-10 19:18:54,761 - model_loader - INFO -    ✓ Loaded model (14 features)
+2025-12-10 19:18:54,761 - model_loader - INFO - ✅ Model 3 loaded
+2025-12-10 19:18:54,761 - model_loader - INFO - 
+================================================================================
+2025-12-10 19:18:54,761 - model_loader - INFO - ✅ ALL MODELS LOADED SUCCESSFULLY
+2025-12-10 19:18:54,761 - model_loader - INFO - ================================================================================
+2025-12-10 19:18:55,319 - gcs_data_fetcher - INFO - 📥 Loading training data from GCS...
+2025-12-10 19:18:58,321 - gcs_data_fetcher - INFO -    ✓ Loaded 4612 rows
+2025-12-10 19:18:58,321 - gcs_data_fetcher - INFO - 📊 Building company lookup index...
+2025-12-10 19:18:58,344 - gcs_data_fetcher - INFO -    ✓ Indexed 84 companies
+2025-12-10 19:18:58,345 - stress_test_pipeline - INFO - 🔍 Initializing SHAP explainer for Model 3...
+2025-12-10 19:18:58,346 - stress_test_pipeline - INFO -       Background data shape: (10, 14) (should be (10, 14))
+2025-12-10 19:18:58,349 - stress_test_pipeline - INFO -    ✓ SHAP explainer ready
+2025-12-10 19:18:58,357 - __main__ - INFO - Authentication router loaded
+2025-12-10 19:18:58,359 - __main__ - INFO - Production features router loaded
+2025-12-10 19:18:58,377 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-12-10 19:21:55,643 - model_loader - INFO - ================================================================================
+2025-12-10 19:21:55,644 - model_loader - INFO - 🚀 LOADING ALL MODELS FROM GCS
+2025-12-10 19:21:55,644 - model_loader - INFO - ================================================================================
+2025-12-10 19:21:55,644 - model_loader - INFO - 
+⏳ Loading Model 1...
+2025-12-10 19:21:55,645 - model_loader - INFO - 📥 Loading Model 1: VAE Scenario Generator
+2025-12-10 19:21:56,097 - model_loader - INFO -    ✓ Downloaded: models/vae/deployment/best_model_deployment.pkl
+2025-12-10 19:21:56,101 - model_loader - INFO -    ℹ️  VAE dict keys: ['model', 'scaler', 'feature_names', 'model_name', 'model_type', 'training_date', 'performance_metrics', 'config', 'version', 'deployment_ready']
+2025-12-10 19:21:56,101 - model_loader - INFO -    ✓ Found features under key 'feature_names'
+2025-12-10 19:21:56,101 - model_loader - INFO -    ✓ Found model state under key 'model'
+2025-12-10 19:21:56,101 - model_loader - INFO -    🔧 Reconstructing VAE: input=72, latent=32
+2025-12-10 19:21:56,105 - model_loader - INFO -    ℹ️  Skipped 12 BatchNorm buffer keys (non-critical)
+2025-12-10 19:21:56,105 - model_loader - INFO -    ✅ Loaded VAE from state_dict
+2025-12-10 19:21:56,105 - model_loader - INFO -    ✅ VAE ready with 72 features
+2025-12-10 19:21:57,110 - model_loader - INFO - ✅ Model 1 loaded and stabilized
+2025-12-10 19:21:57,110 - model_loader - INFO - 
+⏳ Loading Model 2...
+2025-12-10 19:21:57,110 - model_loader - INFO - 📥 Loading Model 2: Predictive Models (5 targets)
+2025-12-10 19:21:57,353 - model_loader - INFO -    ✓ Downloaded: models/predictor/revenue_best.pkl
+2025-12-10 19:21:57,390 - model_loader - INFO -    ✓ Found 229 feature names from 'feature_names'
+2025-12-10 19:21:57,390 - model_loader - INFO -    ✓ revenue         loaded
+2025-12-10 19:21:57,714 - model_loader - INFO -    ✓ Downloaded: models/predictor/eps_best.pkl
+2025-12-10 19:21:57,720 - model_loader - INFO -    ✓ eps             loaded
+2025-12-10 19:21:57,944 - model_loader - INFO -    ✓ Downloaded: models/predictor/debt_equity_best.pkl
+2025-12-10 19:21:57,947 - model_loader - INFO -    ✓ debt_equity     loaded
+2025-12-10 19:21:58,162 - model_loader - INFO -    ✓ Downloaded: models/predictor/profit_margin_best.pkl
+2025-12-10 19:21:58,165 - model_loader - INFO -    ✓ profit_margin   loaded
+2025-12-10 19:21:58,323 - model_loader - INFO -    ✓ Downloaded: models/predictor/stock_return_best.pkl
+2025-12-10 19:21:58,326 - model_loader - INFO -    ✓ stock_return    loaded
+2025-12-10 19:21:59,329 - model_loader - INFO - ✅ Model 2 loaded
+2025-12-10 19:21:59,329 - model_loader - INFO - 
+⏳ Loading Model 3...
+2025-12-10 19:21:59,329 - model_loader - INFO - 📥 Loading Model 3: Anomaly Detection
+2025-12-10 19:21:59,619 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/model.pkl
+2025-12-10 19:21:59,749 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/scaler.pkl
+2025-12-10 19:21:59,749 - model_loader - INFO -    ✓ Loaded scaler
+2025-12-10 19:21:59,849 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/features.json
+2025-12-10 19:21:59,849 - model_loader - INFO -    ✓ Loaded model (14 features)
+2025-12-10 19:21:59,849 - model_loader - INFO - ✅ Model 3 loaded
+2025-12-10 19:21:59,849 - model_loader - INFO - 
+================================================================================
+2025-12-10 19:21:59,849 - model_loader - INFO - ✅ ALL MODELS LOADED SUCCESSFULLY
+2025-12-10 19:21:59,849 - model_loader - INFO - ================================================================================
+2025-12-10 19:22:00,374 - gcs_data_fetcher - INFO - 📥 Loading training data from GCS...
+2025-12-10 19:22:03,286 - gcs_data_fetcher - INFO -    ✓ Loaded 4612 rows
+2025-12-10 19:22:03,286 - gcs_data_fetcher - INFO - 📊 Building company lookup index...
+2025-12-10 19:22:03,309 - gcs_data_fetcher - INFO -    ✓ Indexed 84 companies
+2025-12-10 19:22:03,310 - stress_test_pipeline - INFO - 🔍 Initializing SHAP explainer for Model 3...
+2025-12-10 19:22:03,311 - stress_test_pipeline - INFO -       Background data shape: (10, 14) (should be (10, 14))
+2025-12-10 19:22:03,313 - stress_test_pipeline - INFO -    ✓ SHAP explainer ready
+2025-12-10 19:22:03,321 - __main__ - INFO - Authentication router loaded
+2025-12-10 19:22:03,323 - __main__ - INFO - Production features router loaded
+2025-12-10 19:22:03,342 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-12-10 19:26:57,672 - model_loader - INFO - ================================================================================
+2025-12-10 19:26:57,672 - model_loader - INFO - 🚀 LOADING ALL MODELS FROM GCS
+2025-12-10 19:26:57,672 - model_loader - INFO - ================================================================================
+2025-12-10 19:26:57,672 - model_loader - INFO - 
+⏳ Loading Model 1...
+2025-12-10 19:26:57,672 - model_loader - INFO - 📥 Loading Model 1: VAE Scenario Generator
+2025-12-10 19:26:58,064 - model_loader - INFO -    ✓ Downloaded: models/vae/deployment/best_model_deployment.pkl
+2025-12-10 19:26:58,066 - model_loader - INFO -    ✓ Loaded VAE dict with keys: ['model', 'scaler', 'feature_names', 'model_name', 'model_type', 'training_date', 'performance_metrics', 'config', 'version', 'deployment_ready']
+2025-12-10 19:26:58,066 - model_loader - INFO -    ✓ Extracted scaler for 0 features
+2025-12-10 19:26:58,066 - model_loader - INFO -    ✓ Latent dim: 32
+2025-12-10 19:26:59,072 - model_loader - INFO - ✅ Model 1 loaded and stabilized
+2025-12-10 19:26:59,072 - model_loader - INFO - 
+⏳ Loading Model 2...
+2025-12-10 19:26:59,072 - model_loader - INFO - 📥 Loading Model 2: Predictive Models (5 targets)
+2025-12-10 19:26:59,331 - model_loader - INFO -    ✓ Downloaded: models/predictor/revenue_best.pkl
+2025-12-10 19:26:59,349 - model_loader - INFO -    ✓ Found 229 feature names
+2025-12-10 19:26:59,349 - model_loader - INFO -    ✓ Loaded revenue model (from dict)
+2025-12-10 19:26:59,700 - model_loader - INFO -    ✓ Downloaded: models/predictor/eps_best.pkl
+2025-12-10 19:26:59,703 - model_loader - INFO -    ✓ Loaded eps model (from dict)
+2025-12-10 19:26:59,916 - model_loader - INFO -    ✓ Downloaded: models/predictor/debt_equity_best.pkl
+2025-12-10 19:26:59,917 - model_loader - INFO -    ✓ Loaded debt_equity model (from dict)
+2025-12-10 19:27:00,091 - model_loader - INFO -    ✓ Downloaded: models/predictor/profit_margin_best.pkl
+2025-12-10 19:27:00,091 - model_loader - INFO -    ✓ Loaded profit_margin model (from dict)
+2025-12-10 19:27:00,252 - model_loader - INFO -    ✓ Downloaded: models/predictor/stock_return_best.pkl
+2025-12-10 19:27:00,253 - model_loader - INFO -    ✓ Loaded stock_return model (from dict)
+2025-12-10 19:27:01,258 - model_loader - INFO - ✅ Model 2 loaded
+2025-12-10 19:27:01,258 - model_loader - INFO - 
+⏳ Loading Model 3...
+2025-12-10 19:27:01,258 - model_loader - INFO - 📥 Loading Model 3: Anomaly Detection
+2025-12-10 19:27:01,541 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/model.pkl
+2025-12-10 19:27:01,625 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/scaler.pkl
+2025-12-10 19:27:01,625 - model_loader - INFO -    ✓ Loaded scaler
+2025-12-10 19:27:01,698 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/features.json
+2025-12-10 19:27:01,698 - model_loader - INFO -    ✓ Loaded model (14 features)
+2025-12-10 19:27:01,699 - model_loader - INFO - ✅ Model 3 loaded
+2025-12-10 19:27:01,699 - model_loader - INFO - 
+================================================================================
+2025-12-10 19:27:01,699 - model_loader - INFO - ✅ ALL MODELS LOADED SUCCESSFULLY
+2025-12-10 19:27:01,699 - model_loader - INFO - ================================================================================
+2025-12-10 19:27:02,183 - gcs_data_fetcher - INFO - 📥 Loading training data from GCS...
+2025-12-10 19:27:03,527 - gcs_data_fetcher - INFO -    ✓ Loaded 4612 rows
+2025-12-10 19:27:03,527 - gcs_data_fetcher - INFO - 📊 Building company lookup index...
+2025-12-10 19:27:03,550 - gcs_data_fetcher - INFO -    ✓ Indexed 84 companies
+2025-12-10 19:27:03,550 - stress_test_pipeline - INFO - 🔍 Initializing SHAP explainer for Model 3...
+2025-12-10 19:27:03,551 - stress_test_pipeline - INFO -       Background data shape: (10, 14) (should be (10, 14))
+2025-12-10 19:27:03,553 - stress_test_pipeline - INFO -    ✓ SHAP explainer ready
+2025-12-10 19:27:03,561 - __main__ - INFO - Authentication router loaded
+2025-12-10 19:27:03,563 - __main__ - INFO - Production features router loaded
+2025-12-10 19:27:03,581 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-12-10 19:28:14,830 - model_loader - INFO - ================================================================================
+2025-12-10 19:28:14,830 - model_loader - INFO - 🚀 LOADING ALL MODELS FROM GCS
+2025-12-10 19:28:14,830 - model_loader - INFO - ================================================================================
+2025-12-10 19:28:14,830 - model_loader - INFO - 
+⏳ Loading Model 1...
+2025-12-10 19:28:14,830 - model_loader - INFO - 📥 Loading Model 1: VAE Scenario Generator
+2025-12-10 19:28:15,224 - model_loader - INFO -    ✓ Downloaded: models/vae/deployment/best_model_deployment.pkl
+2025-12-10 19:28:15,229 - model_loader - INFO -    ✓ Loaded VAE dict with keys: ['model', 'scaler', 'feature_names', 'model_name', 'model_type', 'training_date', 'performance_metrics', 'config', 'version', 'deployment_ready']
+2025-12-10 19:28:15,229 - model_loader - INFO -    ✓ Extracted scaler for 0 features
+2025-12-10 19:28:15,229 - model_loader - INFO -    ✓ Latent dim: 32
+2025-12-10 19:28:16,230 - model_loader - INFO - ✅ Model 1 loaded and stabilized
+2025-12-10 19:28:16,230 - model_loader - INFO - 
+⏳ Loading Model 2...
+2025-12-10 19:28:16,230 - model_loader - INFO - 📥 Loading Model 2: Predictive Models (5 targets)
+2025-12-10 19:28:16,465 - model_loader - INFO -    ✓ Downloaded: models/predictor/revenue_best.pkl
+2025-12-10 19:28:16,502 - model_loader - INFO -    ✓ Found 229 feature names
+2025-12-10 19:28:16,502 - model_loader - INFO -    ✓ Loaded revenue model (from dict)
+2025-12-10 19:28:16,825 - model_loader - INFO -    ✓ Downloaded: models/predictor/eps_best.pkl
+2025-12-10 19:28:16,833 - model_loader - INFO -    ✓ Loaded eps model (from dict)
+2025-12-10 19:28:17,048 - model_loader - INFO -    ✓ Downloaded: models/predictor/debt_equity_best.pkl
+2025-12-10 19:28:17,052 - model_loader - INFO -    ✓ Loaded debt_equity model (from dict)
+2025-12-10 19:28:17,236 - model_loader - INFO -    ✓ Downloaded: models/predictor/profit_margin_best.pkl
+2025-12-10 19:28:17,238 - model_loader - INFO -    ✓ Loaded profit_margin model (from dict)
+2025-12-10 19:28:17,389 - model_loader - INFO -    ✓ Downloaded: models/predictor/stock_return_best.pkl
+2025-12-10 19:28:17,390 - model_loader - INFO -    ✓ Loaded stock_return model (from dict)
+2025-12-10 19:28:18,395 - model_loader - INFO - ✅ Model 2 loaded
+2025-12-10 19:28:18,395 - model_loader - INFO - 
+⏳ Loading Model 3...
+2025-12-10 19:28:18,395 - model_loader - INFO - 📥 Loading Model 3: Anomaly Detection
+2025-12-10 19:28:18,687 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/model.pkl
+2025-12-10 19:28:18,773 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/scaler.pkl
+2025-12-10 19:28:18,773 - model_loader - INFO -    ✓ Loaded scaler
+2025-12-10 19:28:18,844 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/features.json
+2025-12-10 19:28:18,844 - model_loader - INFO -    ✓ Loaded model (14 features)
+2025-12-10 19:28:18,845 - model_loader - INFO - ✅ Model 3 loaded
+2025-12-10 19:28:18,845 - model_loader - INFO - 
+================================================================================
+2025-12-10 19:28:18,845 - model_loader - INFO - ✅ ALL MODELS LOADED SUCCESSFULLY
+2025-12-10 19:28:18,845 - model_loader - INFO - ================================================================================
+2025-12-10 19:28:19,326 - gcs_data_fetcher - INFO - 📥 Loading training data from GCS...
+2025-12-10 19:28:22,334 - gcs_data_fetcher - INFO -    ✓ Loaded 4612 rows
+2025-12-10 19:28:22,335 - gcs_data_fetcher - INFO - 📊 Building company lookup index...
+2025-12-10 19:28:22,399 - gcs_data_fetcher - INFO -    ✓ Indexed 84 companies
+2025-12-10 19:28:22,401 - stress_test_pipeline - INFO - 🔍 Initializing SHAP explainer for Model 3...
+2025-12-10 19:28:22,402 - stress_test_pipeline - INFO -       Background data shape: (10, 14) (should be (10, 14))
+2025-12-10 19:28:22,409 - stress_test_pipeline - INFO -    ✓ SHAP explainer ready
+2025-12-10 19:28:22,434 - __main__ - INFO - Authentication router loaded
+2025-12-10 19:28:22,439 - __main__ - INFO - Production features router loaded
+2025-12-10 19:28:22,471 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-12-10 19:31:42,307 - model_loader - INFO - ================================================================================
+2025-12-10 19:31:42,308 - model_loader - INFO - 🚀 LOADING ALL MODELS FROM GCS
+2025-12-10 19:31:42,308 - model_loader - INFO - ================================================================================
+2025-12-10 19:31:42,308 - model_loader - INFO - 
+⏳ Loading Model 1...
+2025-12-10 19:31:42,308 - model_loader - INFO - 📥 Loading Model 1: VAE Scenario Generator
+2025-12-10 19:31:42,724 - model_loader - INFO -    ✓ Downloaded: models/vae/deployment/best_model_deployment.pkl
+2025-12-10 19:31:42,729 - model_loader - INFO -    ℹ️  VAE dict keys: ['model', 'scaler', 'feature_names', 'model_name', 'model_type', 'training_date', 'performance_metrics', 'config', 'version', 'deployment_ready']
+2025-12-10 19:31:42,729 - model_loader - INFO -    ✓ Found features under key 'feature_names'
+2025-12-10 19:31:42,729 - model_loader - INFO -    ✓ Found model state under key 'model'
+2025-12-10 19:31:42,729 - model_loader - INFO -    🔧 Reconstructing VAE: input=72, latent=32
+2025-12-10 19:31:42,733 - model_loader - INFO -    ℹ️  Skipped 12 BatchNorm buffer keys (non-critical)
+2025-12-10 19:31:42,733 - model_loader - INFO -    ✅ Loaded VAE from state_dict
+2025-12-10 19:31:42,734 - model_loader - INFO -    ✅ VAE ready with 72 features
+2025-12-10 19:31:43,739 - model_loader - INFO - ✅ Model 1 loaded and stabilized
+2025-12-10 19:31:43,739 - model_loader - INFO - 
+⏳ Loading Model 2...
+2025-12-10 19:31:43,739 - model_loader - INFO - 📥 Loading Model 2: Predictive Models (5 targets)
+2025-12-10 19:31:43,935 - model_loader - INFO -    ✓ Downloaded: models/predictor/revenue_best.pkl
+2025-12-10 19:31:43,964 - model_loader - INFO -    ✓ Found 229 feature names from 'feature_names'
+2025-12-10 19:31:43,964 - model_loader - INFO -    ✓ revenue         loaded
+2025-12-10 19:31:44,181 - model_loader - INFO -    ✓ Downloaded: models/predictor/eps_best.pkl
+2025-12-10 19:31:44,187 - model_loader - INFO -    ✓ eps             loaded
+2025-12-10 19:31:44,359 - model_loader - INFO -    ✓ Downloaded: models/predictor/debt_equity_best.pkl
+2025-12-10 19:31:44,362 - model_loader - INFO -    ✓ debt_equity     loaded
+2025-12-10 19:31:44,523 - model_loader - INFO -    ✓ Downloaded: models/predictor/profit_margin_best.pkl
+2025-12-10 19:31:44,526 - model_loader - INFO -    ✓ profit_margin   loaded
+2025-12-10 19:31:44,678 - model_loader - INFO -    ✓ Downloaded: models/predictor/stock_return_best.pkl
+2025-12-10 19:31:44,680 - model_loader - INFO -    ✓ stock_return    loaded
+2025-12-10 19:31:45,684 - model_loader - INFO - ✅ Model 2 loaded
+2025-12-10 19:31:45,684 - model_loader - INFO - 
+⏳ Loading Model 3...
+2025-12-10 19:31:45,684 - model_loader - INFO - 📥 Loading Model 3: Anomaly Detection
+2025-12-10 19:31:45,913 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/model.pkl
+2025-12-10 19:31:46,002 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/scaler.pkl
+2025-12-10 19:31:46,003 - model_loader - INFO -    ✓ Loaded scaler
+2025-12-10 19:31:46,074 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/features.json
+2025-12-10 19:31:46,074 - model_loader - INFO -    ✓ Loaded model (14 features)
+2025-12-10 19:31:46,074 - model_loader - INFO - ✅ Model 3 loaded
+2025-12-10 19:31:46,074 - model_loader - INFO - 
+================================================================================
+2025-12-10 19:31:46,074 - model_loader - INFO - ✅ ALL MODELS LOADED SUCCESSFULLY
+2025-12-10 19:31:46,074 - model_loader - INFO - ================================================================================
+2025-12-10 19:31:46,548 - gcs_data_fetcher - INFO - 📥 Loading training data from GCS...
+2025-12-10 19:31:49,596 - gcs_data_fetcher - INFO -    ✓ Loaded 4612 rows
+2025-12-10 19:31:49,596 - gcs_data_fetcher - INFO - 📊 Building company lookup index...
+2025-12-10 19:31:49,618 - gcs_data_fetcher - INFO -    ✓ Indexed 84 companies
+2025-12-10 19:31:49,619 - stress_test_pipeline - INFO - 🔍 Initializing SHAP explainer for Model 3...
+2025-12-10 19:31:49,619 - stress_test_pipeline - INFO -       Background data shape: (10, 14) (should be (10, 14))
+2025-12-10 19:31:49,621 - stress_test_pipeline - INFO -    ✓ SHAP explainer ready
+2025-12-10 19:31:49,630 - __main__ - INFO - Authentication router loaded
+2025-12-10 19:31:49,632 - __main__ - INFO - Production features router loaded
+2025-12-10 19:31:49,651 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-12-10 19:35:03,424 - model_loader - INFO - ================================================================================
+2025-12-10 19:35:03,425 - model_loader - INFO - 🚀 LOADING ALL MODELS FROM GCS
+2025-12-10 19:35:03,425 - model_loader - INFO - ================================================================================
+2025-12-10 19:35:03,425 - model_loader - INFO - 
+⏳ Loading Model 1...
+2025-12-10 19:35:03,425 - model_loader - INFO - 📥 Loading Model 1: VAE Scenario Generator
+2025-12-10 19:35:03,820 - model_loader - INFO -    ✓ Downloaded: models/vae/deployment/best_model_deployment.pkl
+2025-12-10 19:35:03,825 - model_loader - INFO -    ℹ️  VAE dict keys: ['model', 'scaler', 'feature_names', 'model_name', 'model_type', 'training_date', 'performance_metrics', 'config', 'version', 'deployment_ready']
+2025-12-10 19:35:03,825 - model_loader - INFO -    ✓ Found features under key 'feature_names'
+2025-12-10 19:35:03,825 - model_loader - INFO -    ✓ Found model state under key 'model'
+2025-12-10 19:35:03,825 - model_loader - INFO -    🔧 Reconstructing VAE: input=72, latent=32
+2025-12-10 19:35:03,829 - model_loader - INFO -    ℹ️  Skipped 12 BatchNorm buffer keys (non-critical)
+2025-12-10 19:35:03,829 - model_loader - INFO -    ✅ Loaded VAE from state_dict
+2025-12-10 19:35:03,829 - model_loader - INFO -    ✅ VAE ready with 72 features
+2025-12-10 19:35:04,832 - model_loader - INFO - ✅ Model 1 loaded and stabilized
+2025-12-10 19:35:04,832 - model_loader - INFO - 
+⏳ Loading Model 2...
+2025-12-10 19:35:04,832 - model_loader - INFO - 📥 Loading Model 2: Predictive Models (5 targets)
+2025-12-10 19:35:05,072 - model_loader - INFO -    ✓ Downloaded: models/predictor/revenue_best.pkl
+2025-12-10 19:35:05,089 - model_loader - INFO -    ✓ Found 229 feature names from 'feature_names'
+2025-12-10 19:35:05,089 - model_loader - INFO -    ✓ revenue         loaded
+2025-12-10 19:35:05,422 - model_loader - INFO -    ✓ Downloaded: models/predictor/eps_best.pkl
+2025-12-10 19:35:05,425 - model_loader - INFO -    ✓ eps             loaded
+2025-12-10 19:35:05,648 - model_loader - INFO -    ✓ Downloaded: models/predictor/debt_equity_best.pkl
+2025-12-10 19:35:05,652 - model_loader - INFO -    ✓ debt_equity     loaded
+2025-12-10 19:35:05,824 - model_loader - INFO -    ✓ Downloaded: models/predictor/profit_margin_best.pkl
+2025-12-10 19:35:05,826 - model_loader - INFO -    ✓ profit_margin   loaded
+2025-12-10 19:35:05,985 - model_loader - INFO -    ✓ Downloaded: models/predictor/stock_return_best.pkl
+2025-12-10 19:35:05,987 - model_loader - INFO -    ✓ stock_return    loaded
+2025-12-10 19:35:06,989 - model_loader - INFO - ✅ Model 2 loaded
+2025-12-10 19:35:06,989 - model_loader - INFO - 
+⏳ Loading Model 3...
+2025-12-10 19:35:06,989 - model_loader - INFO - 📥 Loading Model 3: Anomaly Detection
+2025-12-10 19:35:07,281 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/model.pkl
+2025-12-10 19:35:07,364 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/scaler.pkl
+2025-12-10 19:35:07,365 - model_loader - INFO -    ✓ Loaded scaler
+2025-12-10 19:35:07,440 - model_loader - INFO -    ✓ Downloaded: models/anomaly_detection/features.json
+2025-12-10 19:35:07,441 - model_loader - INFO -    ✓ Loaded model (14 features)
+2025-12-10 19:35:07,441 - model_loader - INFO - ✅ Model 3 loaded
+2025-12-10 19:35:07,441 - model_loader - INFO - 
+================================================================================
+2025-12-10 19:35:07,441 - model_loader - INFO - ✅ ALL MODELS LOADED SUCCESSFULLY
+2025-12-10 19:35:07,441 - model_loader - INFO - ================================================================================
+2025-12-10 19:35:07,934 - gcs_data_fetcher - INFO - 📥 Loading training data from GCS...
+2025-12-10 19:35:10,908 - gcs_data_fetcher - INFO -    ✓ Loaded 4612 rows
+2025-12-10 19:35:10,908 - gcs_data_fetcher - INFO - 📊 Building company lookup index...
+2025-12-10 19:35:10,933 - gcs_data_fetcher - INFO -    ✓ Indexed 84 companies
+2025-12-10 19:35:10,934 - stress_test_pipeline - INFO - 🔍 Initializing SHAP explainer for Model 3...
+2025-12-10 19:35:10,935 - stress_test_pipeline - INFO -       Background data shape: (10, 14) (should be (10, 14))
+2025-12-10 19:35:10,937 - stress_test_pipeline - INFO -    ✓ SHAP explainer ready
+2025-12-10 19:35:10,946 - __main__ - INFO - Authentication router loaded
+2025-12-10 19:35:10,948 - __main__ - INFO - Production features router loaded
+2025-12-10 19:35:10,966 - __main__ - INFO - Starting server on 0.0.0.0:8000

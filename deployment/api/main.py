@@ -1,657 +1,792 @@
-# import functions_framework
-# from flask import jsonify, request
-# import os
+# """
+# ============================================================================
+# Financial Stress Test Platform - Main API Entry Point
+# ============================================================================
+# Integrates YOUR stress test pipeline with enterprise features
+# Author: Parth Saraykar
+# Version: 3.0.0 - Production Ready
+# ============================================================================
+# """
+
+# from fastapi import FastAPI, HTTPException
+# from fastapi.middleware.cors import CORSMiddleware
+# from datetime import datetime
 # import sys
-# import logging
-# import json
+# from pathlib import Path
 
-# # CRITICAL: Set threading BEFORE any imports
-# os.environ['OMP_NUM_THREADS'] = '1'
-# os.environ['MKL_NUM_THREADS'] = '1'
-# os.environ['OPENBLAS_NUM_THREADS'] = '1'
-# os.environ['NUMEXPR_NUM_THREADS'] = '1'
-# os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
-# os.environ['LIGHTGBM_NUM_THREADS'] = '1'
+# # Add parent directory to path for imports
+# sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# # Set up logging
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger(__name__)
+# # ============================================================================
+# # IMPORT ROUTERS
+# # ============================================================================
 
-# # Import your modules
+# # Try to import auth system
 # try:
-#     from config import Config
-#     from model_loader import GCSModelLoader
-#     from feature_mapper import FeatureMapper
-#     from gcs_data_fetcher import GCSDataFetcher
-#     from pipeline import StressTestPipeline
-    
-#     logger.info("✅ Successfully imported all modules")
+#     from auth_system import router as auth_router
+#     AUTH_LOADED = True
 # except ImportError as e:
-#     logger.error(f"❌ Could not import modules: {e}")
-#     raise
+#     print(f"⚠️  Warning: Could not load auth_system.py: {e}")
+#     print("    Running without authentication")
+#     AUTH_LOADED = False
 
-# # Global variables for caching (reused across invocations)
-# MODELS = None
-# PIPELINE = None
-# DATA_FETCHER = None
-# INITIALIZED = False
+# # Try to import production features
+# try:
+#     from production_features import router as prod_router
+#     PRODUCTION_LOADED = True
+# except ImportError as e:
+#     print(f"⚠️  Warning: Could not load production_features.py: {e}")
+#     print("    Running without production features")
+#     PRODUCTION_LOADED = False
 
+# # ============================================================================
+# # CREATE FASTAPI APPLICATION
+# # ============================================================================
 
-# def initialize_pipeline():
-#     """Initialize the pipeline once and cache it"""
-#     global MODELS, PIPELINE, DATA_FETCHER, INITIALIZED
-    
-#     if INITIALIZED:
-#         return True
-    
-#     try:
-#         logger.info("🚀 Initializing Financial Stress Test API...")
-        
-#         # Import torch and set single-threaded mode
-#         import torch
-#         torch.set_num_threads(1)
-#         logger.info(f"✅ PyTorch {torch.__version__} initialized (single-threaded)")
-        
-#         # Load models from GCS
-#         logger.info("📥 Loading models from GCS...")
-#         model_loader = GCSModelLoader(
-#             bucket_name=Config.GCS_BUCKET,
-#             config=Config.MODEL_PATHS
-#         )
-#         MODELS = model_loader.load_all_models()
-#         logger.info("✅ Models loaded")
-        
-#         # Load company data
-#         logger.info("📊 Loading company data...")
-#         DATA_FETCHER = GCSDataFetcher(
-#             bucket_name=Config.GCS_BUCKET,
-#             data_paths=Config.DATA_PATHS
-#         )
-#         DATA_FETCHER.load_training_data()
-#         logger.info("✅ Company data loaded")
-        
-#         # Initialize pipeline
-#         logger.info("🔧 Initializing pipeline...")
-#         feature_mapper = FeatureMapper(Config.VAE_TO_MODEL2_MAPPING)
-        
-#         PIPELINE = StressTestPipeline(
-#             models=MODELS,
-#             feature_mapper=feature_mapper,
-#             data_fetcher=DATA_FETCHER,
-#             config=Config
-#         )
-#         logger.info("✅ Pipeline initialized")
-        
-#         # Skip pre-generation - generate on demand instead
-#         logger.info("✅ Pipeline ready (scenarios will be generated on first request)")
-#         PIPELINE.scenarios = []  # Initialize empty list
-        
-#         INITIALIZED = True
-#         logger.info("✅ API READY")
-#         return True
-        
-#     except Exception as e:
-#         logger.error(f"❌ Initialization failed: {e}")
-#         import traceback
-#         logger.error(traceback.format_exc())
-#         return False
+# app = FastAPI(
+#     title="Financial Stress Test Platform",
+#     description="Enterprise Risk Analytics with ML-Powered Stress Testing",
+#     version="3.0.0",
+#     docs_url="/docs",
+#     redoc_url="/redoc",
+#     contact={
+#         "name": "Parth Saraykar",
+#         "email": "parth@financialstress.com"
+#     }
+# )
 
+# # ============================================================================
+# # CONFIGURE CORS
+# # ============================================================================
 
-# @functions_framework.http
-# def predict(request):
-#     """
-#     Main entry point for stress test predictions
-    
-#     Endpoints:
-#     - GET / or /health - Health check
-#     - GET /scenarios - List scenarios
-#     - POST /stress-test - Run stress test
-#     - POST /scenarios/generate - Generate new scenarios
-#     - GET /companies - List companies
-#     """
-    
-#     # Handle CORS preflight
-#     if request.method == 'OPTIONS':
-#         headers = {
-#             'Access-Control-Allow-Origin': '*',
-#             'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-#             'Access-Control-Allow-Headers': 'Content-Type',
-#             'Access-Control-Max-Age': '3600'
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # In production: specify exact origins
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # ============================================================================
+# # INCLUDE ROUTERS
+# # ============================================================================
+
+# if AUTH_LOADED:
+#     app.include_router(auth_router)
+
+# if PRODUCTION_LOADED:
+#     app.include_router(prod_router)
+
+# # ============================================================================
+# # ROOT ENDPOINTS
+# # ============================================================================
+
+# @app.get("/")
+# async def root():
+#     """Root endpoint - API information"""
+#     return {
+#         "message": "Financial Stress Test Platform API",
+#         "version": "3.0.0",
+#         "status": "operational",
+#         "timestamp": datetime.now().isoformat(),
+#         "documentation": {
+#             "swagger_ui": "/docs",
+#             "redoc": "/redoc"
+#         },
+#         "features": {
+#             "authentication": AUTH_LOADED,
+#             "stress_testing": PRODUCTION_LOADED,
+#             "batch_processing": PRODUCTION_LOADED,
+#             "risk_limits": PRODUCTION_LOADED,
+#             "reports": PRODUCTION_LOADED,
+#             "portfolio_analysis": PRODUCTION_LOADED
+#         },
+#         "endpoints": {
+#             "health": "/api/v1/health",
+#             "login": "/api/v1/auth/login",
+#             "stress_test": "/api/v1/stress-test",
+#             "scenarios": "/api/v1/scenarios"
 #         }
-#         return ('', 204, headers)
+#     }
+
+# @app.get("/health")
+# async def health_check():
+#     """Simple health check"""
+#     return {
+#         "status": "healthy",
+#         "service": "Financial Stress Test Platform",
+#         "version": "3.0.0",
+#         "timestamp": datetime.now().isoformat()
+#     }
+
+# # ============================================================================
+# # ERROR HANDLERS
+# # ============================================================================
+
+# @app.exception_handler(404)
+# async def not_found_handler(request, exc):
+#     """Custom 404 error handler"""
+#     return {
+#         "error": "Not Found",
+#         "message": f"The endpoint {request.url.path} does not exist",
+#         "documentation": "/docs",
+#         "status_code": 404
+#     }
+
+# @app.exception_handler(500)
+# async def internal_error_handler(request, exc):
+#     """Custom 500 error handler"""
+#     return {
+#         "error": "Internal Server Error",
+#         "message": "An unexpected error occurred. Check server logs.",
+#         "status_code": 500
+#     }
+
+# # ============================================================================
+# # STARTUP EVENT
+# # ============================================================================
+
+# @app.on_event("startup")
+# async def startup_event():
+#     """Execute on API startup"""
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print("🚀 Financial Stress Test Platform API")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print(f"📊 Version: 3.0.0")
+#     print(f"🌐 API Documentation: http://localhost:8000/docs")
+#     print(f"📖 Alternative Docs: http://localhost:8000/redoc")
+#     print(f"🔐 Authentication: {'Enabled' if AUTH_LOADED else 'Disabled'}")
+#     print(f"✅ Production Features: {'Loaded' if PRODUCTION_LOADED else 'Not Loaded'}")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
-#     # Set CORS headers
-#     headers = {
-#         'Access-Control-Allow-Origin': '*',
-#         'Content-Type': 'application/json'
+#     # Check GCS connectivity
+#     try:
+#         from google.cloud import storage
+#         client = storage.Client()
+#         bucket = client.bucket("mlops-financial-stress-data")
+        
+#         if bucket.exists():
+#             print("✅ GCS Bucket: Connected")
+#         else:
+#             print("⚠️  GCS Bucket: Not found")
+#     except Exception as e:
+#         error_msg = str(e)[:60]
+#         print(f"⚠️  GCS: {error_msg}...")
+#         print("    (This is OK for local testing)")
+    
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print("✨ Server ready! Press CTRL+C to quit")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+# @app.on_event("shutdown")
+# async def shutdown_event():
+#     """Execute on API shutdown"""
+#     print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print("🛑 Shutting down Financial Stress Test Platform API")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+# # ============================================================================
+# # RUN SERVER
+# # ============================================================================
+
+# if __name__ == "__main__":
+#     import uvicorn
+    
+#     uvicorn.run(
+#         app, 
+#         host="0.0.0.0", 
+#         port=8000,
+#         log_level="info"
+#     )
+
+
+
+# """
+# ============================================================================
+# Financial Stress Test Platform - Main API Entry Point
+# ============================================================================
+# Integrates YOUR stress test pipeline with enterprise features
+# Author: Parth Saraykar
+# Version: 3.0.1 - Cloud Run Production Ready
+# ============================================================================
+# """
+
+# from fastapi import FastAPI, HTTPException
+# from fastapi.middleware.cors import CORSMiddleware
+# from contextlib import asynccontextmanager
+# from datetime import datetime
+# import sys
+# import os
+# from pathlib import Path
+
+# # Add parent directory to path for imports
+# sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# # ============================================================================
+# # IMPORT ROUTERS
+# # ============================================================================
+
+# # Try to import auth system
+# try:
+#     from auth_system import router as auth_router
+#     AUTH_LOADED = True
+# except ImportError as e:
+#     print(f"⚠️  Warning: Could not load auth_system.py: {e}")
+#     print("    Running without authentication")
+#     AUTH_LOADED = False
+
+# # Try to import production features
+# try:
+#     from production_features import router as prod_router
+#     PRODUCTION_LOADED = True
+# except ImportError as e:
+#     print(f"⚠️  Warning: Could not load production_features.py: {e}")
+#     print("    Running without production features")
+#     PRODUCTION_LOADED = False
+
+# # ============================================================================
+# # LIFESPAN CONTEXT MANAGER (Modern FastAPI)
+# # ============================================================================
+
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     """Startup and shutdown events"""
+#     # Startup
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print("🚀 Financial Stress Test Platform API")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print(f"📊 Version: 3.0.1 (Cloud Run)")
+#     print(f"🔐 Authentication: {'Enabled' if AUTH_LOADED else 'Disabled'}")
+#     print(f"✅ Production Features: {'Loaded' if PRODUCTION_LOADED else 'Not Loaded'}")
+    
+#     # Check GCS connectivity
+#     try:
+#         from google.cloud import storage
+#         client = storage.Client()
+#         bucket = client.bucket("mlops-financial-stress-data")
+        
+#         if bucket.exists():
+#             print("✅ GCS Bucket: Connected")
+#         else:
+#             print("⚠️  GCS Bucket: Not found")
+#     except Exception as e:
+#         error_msg = str(e)[:60]
+#         print(f"⚠️  GCS: {error_msg}...")
+#         print("    (This is OK for local testing)")
+    
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print("✨ Server ready!")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    
+#     yield
+    
+#     # Shutdown
+#     print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+#     print("🛑 Shutting down Financial Stress Test Platform API")
+#     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+# # ============================================================================
+# # CREATE FASTAPI APPLICATION
+# # ============================================================================
+
+# app = FastAPI(
+#     title="Financial Stress Test Platform",
+#     description="Enterprise Risk Analytics with ML-Powered Stress Testing",
+#     version="3.0.1",
+#     docs_url="/docs",
+#     redoc_url="/redoc",
+#     lifespan=lifespan,
+#     contact={
+#         "name": "Parth Saraykar",
+#         "email": "parth@financialstress.com"
+#     }
+# )
+
+# # ============================================================================
+# # CONFIGURE CORS
+# # ============================================================================
+
+# # Get allowed origins from environment variable
+# ALLOWED_ORIGINS = os.getenv(
+#     "ALLOWED_ORIGINS",
+#     "https://storage.googleapis.com,https://mlops-financial-stress-ui.storage.googleapis.com"
+# ).split(",")
+
+# # For local development, add localhost
+# if os.getenv("ENVIRONMENT", "production") == "development":
+#     ALLOWED_ORIGINS.extend([
+#         "http://localhost:3000",
+#         "http://localhost:8000",
+#         "http://127.0.0.1:3000",
+#         "http://127.0.0.1:8000"
+#     ])
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=ALLOWED_ORIGINS,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # ============================================================================
+# # INCLUDE ROUTERS
+# # ============================================================================
+
+# if AUTH_LOADED:
+#     app.include_router(auth_router)
+
+# if PRODUCTION_LOADED:
+#     app.include_router(prod_router)
+
+# # ============================================================================
+# # ROOT ENDPOINTS
+# # ============================================================================
+
+# @app.get("/")
+# async def root():
+#     """Root endpoint - API information"""
+#     return {
+#         "message": "Financial Stress Test Platform API",
+#         "version": "3.0.1",
+#         "status": "operational",
+#         "timestamp": datetime.now().isoformat(),
+#         "environment": os.getenv("ENVIRONMENT", "production"),
+#         "documentation": {
+#             "swagger_ui": "/docs",
+#             "redoc": "/redoc"
+#         },
+#         "features": {
+#             "authentication": AUTH_LOADED,
+#             "stress_testing": PRODUCTION_LOADED,
+#             "batch_processing": PRODUCTION_LOADED,
+#             "risk_limits": PRODUCTION_LOADED,
+#             "reports": PRODUCTION_LOADED,
+#             "portfolio_analysis": PRODUCTION_LOADED
+#         },
+#         "endpoints": {
+#             "health": "/health",
+#             "api_health": "/api/v1/health",
+#             "login": "/api/v1/auth/login",
+#             "stress_test": "/api/v1/stress-test",
+#             "scenarios": "/api/v1/scenarios"
+#         }
+#     }
+
+# @app.get("/health")
+# async def health_check():
+#     """Simple health check for load balancers"""
+#     return {
+#         "status": "healthy",
+#         "service": "Financial Stress Test Platform",
+#         "version": "3.0.1",
+#         "timestamp": datetime.now().isoformat()
+#     }
+
+# @app.get("/api/v1/health")
+# async def detailed_health():
+#     """Detailed health check with component status"""
+#     health_status = {
+#         "status": "healthy",
+#         "service": "Financial Stress Test Platform",
+#         "version": "3.0.1",
+#         "timestamp": datetime.now().isoformat(),
+#         "components": {
+#             "api": "healthy",
+#             "auth": "loaded" if AUTH_LOADED else "not_loaded",
+#             "production_features": "loaded" if PRODUCTION_LOADED else "not_loaded"
+#         }
 #     }
     
+#     # Check GCS connectivity
 #     try:
-#         # Initialize on first request (cached after)
-#         if not INITIALIZED:
-#             logger.info("First request - initializing...")
-#             if not initialize_pipeline():
-#                 return jsonify({
-#                     'error': 'Failed to initialize pipeline',
-#                     'status': 'failed'
-#                 }), 500, headers
-        
-#         # Route requests
-#         path = request.path
-#         method = request.method
-        
-#         # Health check - default for root path
-#         if method == 'GET' and (path == '/' or path == '/health' or path == ''):
-#             return jsonify({
-#                 'status': 'healthy',
-#                 'service': 'Financial Stress Test API',
-#                 'version': '1.0',
-#                 'models_loaded': MODELS is not None,
-#                 'pipeline_ready': PIPELINE is not None,
-#                 'n_scenarios': len(PIPELINE.scenarios) if PIPELINE else 0,
-#                 'n_companies': len(DATA_FETCHER.company_lookup) if DATA_FETCHER else 0,
-#                 'endpoints': {
-#                     'health': 'GET /health',
-#                     'scenarios': 'GET /scenarios',
-#                     'companies': 'GET /companies',
-#                     'stress_test': 'POST /stress-test',
-#                     'generate': 'POST /scenarios/generate'
-#                 }
-#             }), 200, headers
-        
-#         # Get scenarios - UPDATED TO GENERATE ON DEMAND
-#         if method == 'GET' and 'scenarios' in path:
-#             # Generate scenarios on first request if empty
-#             if not PIPELINE.scenarios:
-#                 logger.info("📝 No scenarios exist, generating 10 scenarios...")
-#                 try:
-#                     PIPELINE.generate_scenarios(n_scenarios=10)
-#                     logger.info(f"✅ Generated {len(PIPELINE.scenarios)} scenarios")
-#                 except Exception as e:
-#                     logger.error(f"❌ Scenario generation failed: {e}")
-#                     import traceback
-#                     logger.error(traceback.format_exc())
-#                     return jsonify({
-#                         'error': 'Failed to generate scenarios',
-#                         'message': str(e),
-#                         'scenarios': [],
-#                         'total': 0
-#                     }), 500, headers
-            
-#             scenarios_list = [
-#                 {
-#                     "scenario_id": s["scenario_id"],
-#                     "severity": s["severity"],
-#                     "sigma": float(s["sigma"]),
-#                     "crisis_type": s.get("crisis_type", "Unknown"),
-#                     "preview": {
-#                         "GDP": float(s["features"].get("GDP", 0)),
-#                         "VIX": float(s["features"].get("VIX", 0)),
-#                         "Unemployment_Rate": float(s["features"].get("Unemployment_Rate", 0))
-#                     }
-#                 }
-#                 for s in PIPELINE.scenarios
-#             ]
-#             return jsonify({
-#                 "scenarios": scenarios_list,
-#                 "total": len(scenarios_list)
-#             }), 200, headers
-        
-#         # Generate scenarios
-#         if method == 'POST' and 'generate' in path:
-#             try:
-#                 request_json = request.get_json(silent=True)
-#                 n_scenarios = request_json.get('n_scenarios', 10) if request_json else 10
-                
-#                 logger.info(f"📝 Generating {n_scenarios} scenarios")
-#                 scenarios = PIPELINE.generate_scenarios(n_scenarios=n_scenarios)
-#                 logger.info(f"✅ Successfully generated {len(scenarios)} scenarios")
-                
-#                 return jsonify({
-#                     "message": f"Generated {len(scenarios)} scenarios",
-#                     "n_scenarios": len(scenarios),
-#                     "scenarios": [
-#                         {
-#                             "scenario_id": s["scenario_id"],
-#                             "severity": s["severity"],
-#                             "sigma": float(s["sigma"]),
-#                             "crisis_type": s.get("crisis_type", "Unknown")
-#                         }
-#                         for s in scenarios
-#                     ]
-#                 }), 200, headers
-#             except Exception as e:
-#                 logger.error(f"❌ Scenario generation failed: {e}")
-#                 import traceback
-#                 logger.error(traceback.format_exc())
-#                 return jsonify({
-#                     'error': 'Failed to generate scenarios',
-#                     'message': str(e),
-#                     'status': 'failed'
-#                 }), 500, headers
-        
-#         # Run stress test
-#         if method == 'POST' and 'stress-test' in path:
-#             request_json = request.get_json(silent=True)
-            
-#             if not request_json:
-#                 return jsonify({
-#                     'error': 'No JSON data provided',
-#                     'example': {
-#                         'company_id': 'AAPL',
-#                         'scenario_ids': [0, 1, 2]
-#                     }
-#                 }), 400, headers
-            
-#             company_id = request_json.get('company_id')
-#             scenario_ids = request_json.get('scenario_ids', [])
-            
-#             if not company_id:
-#                 return jsonify({'error': 'company_id is required'}), 400, headers
-            
-#             if company_id not in DATA_FETCHER.company_lookup:
-#                 return jsonify({
-#                     'error': f'Company {company_id} not found'
-#                 }), 404, headers
-            
-#             # Check if scenarios exist
-#             if not PIPELINE.scenarios:
-#                 return jsonify({
-#                     'error': 'No scenarios available. Please generate scenarios first.',
-#                     'status': 'failed'
-#                 }), 400, headers
-            
-#             # Run stress test
-#             logger.info(f"🧪 Running stress test for {company_id} on {len(scenario_ids)} scenarios")
-#             results = PIPELINE.run_stress_test(
-#                 company_id=company_id,
-#                 scenario_ids=scenario_ids
-#             )
-            
-#             # Calculate aggregates if multiple scenarios
-#             if len(results) > 1:
-#                 avg_risk = sum(r["risk_assessment"]["risk_score"] for r in results) / len(results)
-#                 best_case = min(results, key=lambda x: x["risk_assessment"]["risk_score"])
-#                 worst_case = max(results, key=lambda x: x["risk_assessment"]["risk_score"])
-                
-#                 return jsonify({
-#                     "company_id": company_id,
-#                     "n_scenarios": len(results),
-#                     "aggregated": True,
-#                     "summary": {
-#                         "avg_risk_score": round(avg_risk, 1),
-#                         "best_case": best_case,
-#                         "worst_case": worst_case
-#                     },
-#                     "detailed_results": results
-#                 }), 200, headers
-#             else:
-#                 return jsonify({
-#                     "company_id": company_id,
-#                     "n_scenarios": 1,
-#                     "aggregated": False,
-#                     "result": results[0]
-#                 }), 200, headers
-        
-#         # List companies
-#         if method == 'GET' and 'companies' in path:
-#             companies = [
-#                 {
-#                     "company_id": cid,
-#                     "sector": data["sector"]
-#                 }
-#                 for cid, data in DATA_FETCHER.company_lookup.items()
-#             ]
-            
-#             return jsonify({
-#                 "companies": companies,
-#                 "total": len(companies)
-#             }), 200, headers
-        
-#         # Unknown endpoint
-#         return jsonify({
-#             'error': 'Unknown endpoint',
-#             'path': path,
-#             'method': method,
-#             'available_endpoints': [
-#                 'GET / or /health - Health check',
-#                 'GET /scenarios - List scenarios',
-#                 'POST /stress-test - Run stress test',
-#                 'POST /scenarios/generate - Generate scenarios',
-#                 'GET /companies - List companies'
-#             ]
-#         }), 404, headers
-        
+#         from google.cloud import storage
+#         client = storage.Client()
+#         bucket = client.bucket("mlops-financial-stress-data")
+#         bucket.exists()
+#         health_status["components"]["gcs"] = "healthy"
 #     except Exception as e:
-#         logger.error(f"Error: {str(e)}", exc_info=True)
-#         return jsonify({
-#             'error': str(e),
-#             'status': 'failed',
-#             'type': type(e).__name__
-#         }), 500, headers
+#         health_status["components"]["gcs"] = "degraded"
+#         health_status["status"] = "degraded"
+    
+#     return health_status
+
+# # ============================================================================
+# # ERROR HANDLERS
+# # ============================================================================
+
+# @app.exception_handler(404)
+# async def not_found_handler(request, exc):
+#     """Custom 404 error handler"""
+#     return {
+#         "error": "Not Found",
+#         "message": f"The endpoint {request.url.path} does not exist",
+#         "documentation": "/docs",
+#         "status_code": 404
+#     }
+
+# @app.exception_handler(500)
+# async def internal_error_handler(request, exc):
+#     """Custom 500 error handler"""
+#     return {
+#         "error": "Internal Server Error",
+#         "message": "An unexpected error occurred. Check server logs.",
+#         "status_code": 500
+#     }
+
+# # ============================================================================
+# # RUN SERVER (LOCAL DEVELOPMENT)
+# # ============================================================================
+
+# if __name__ == "__main__":
+#     import uvicorn
+    
+#     # Cloud Run provides PORT environment variable
+#     port = int(os.getenv("PORT", 8000))
+    
+#     uvicorn.run(
+#         app, 
+#         host="0.0.0.0", 
+#         port=port,
+#         log_level="info"
+#     )
 
 
-import functions_framework
-from flask import jsonify, request
-import os
+"""
+============================================================================
+Financial Stress Test Platform - Main API Entry Point
+============================================================================
+Integrates YOUR stress test pipeline with enterprise features
+Author: Parth Saraykar
+Version: 3.0.1 - Cloud Run Production Ready
+============================================================================
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+from datetime import datetime
 import sys
-import logging
-import json
+import os
+from pathlib import Path
+import traceback
 
-# CRITICAL: Set threading BEFORE any imports
-os.environ['OMP_NUM_THREADS'] = '1'
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['OPENBLAS_NUM_THREADS'] = '1'
-os.environ['NUMEXPR_NUM_THREADS'] = '1'
-os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
-os.environ['LIGHTGBM_NUM_THREADS'] = '1'
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# ============================================================================
+# IMPORT ROUTERS WITH DETAILED ERROR REPORTING
+# ============================================================================
 
-# Import your modules
+print("=" * 80)
+print("🔍 LOADING AUTHENTICATION SYSTEM...")
+print("=" * 80)
+
+AUTH_LOADED = False
+auth_router = None
+
 try:
-    from config import Config
-    from model_loader import GCSModelLoader
-    from feature_mapper import FeatureMapper
-    from gcs_data_fetcher import GCSDataFetcher
-    from pipeline import StressTestPipeline
+    print("   → Step 1: Importing auth_system module...")
+    from auth_system import router as auth_router
+    print("   ✅ Module imported successfully!")
     
-    logger.info("✅ Successfully imported all modules")
+    print("   → Step 2: Verifying router object...")
+    if auth_router is None:
+        raise Exception("Router is None after import")
+    print("   ✅ Router object is valid!")
+    
+    print("   → Step 3: Checking router type...")
+    print(f"      Router type: {type(auth_router)}")
+    print("   ✅ Router type confirmed!")
+    
+    AUTH_LOADED = True
+    print("\n   ✅✅✅ AUTH SYSTEM LOADED SUCCESSFULLY! ✅✅✅\n")
+    
 except ImportError as e:
-    logger.error(f"❌ Could not import modules: {e}")
-    raise
-
-# Global variables for caching (reused across invocations)
-MODELS = None
-PIPELINE = None
-DATA_FETCHER = None
-INITIALIZED = False
-
-
-def initialize_pipeline():
-    """Initialize the pipeline once and cache it"""
-    global MODELS, PIPELINE, DATA_FETCHER, INITIALIZED
+    print(f"\n   ❌ ImportError: {e}")
+    print("\n   Full traceback:")
+    print(traceback.format_exc())
+    print("\n   ⚠️  AUTH WILL BE DISABLED\n")
+    AUTH_LOADED = False
     
-    if INITIALIZED:
-        return True
+except Exception as e:
+    print(f"\n   ❌ Unexpected error: {e}")
+    print("\n   Full traceback:")
+    print(traceback.format_exc())
+    print("\n   ⚠️  AUTH WILL BE DISABLED\n")
+    AUTH_LOADED = False
+
+print("=" * 80)
+print(f"🔐 FINAL AUTH STATUS: {'✅ ENABLED' if AUTH_LOADED else '❌ DISABLED'}")
+print("=" * 80)
+
+# Try to import production features
+print("\n" + "=" * 80)
+print("🔍 LOADING PRODUCTION FEATURES...")
+print("=" * 80)
+
+PRODUCTION_LOADED = False
+prod_router = None
+
+try:
+    print("   → Importing production_features module...")
+    from production_features import router as prod_router
+    print("   ✅ Production features imported!")
+    PRODUCTION_LOADED = True
     
+except ImportError as e:
+    print(f"   ⚠️  Warning: Could not load production_features.py: {e}")
+    print("   Running without production features")
+    PRODUCTION_LOADED = False
+    
+except Exception as e:
+    print(f"   ⚠️  Error loading production features: {e}")
+    PRODUCTION_LOADED = False
+
+print("=" * 80)
+print(f"📦 PRODUCTION FEATURES: {'✅ LOADED' if PRODUCTION_LOADED else '❌ NOT LOADED'}")
+print("=" * 80)
+print("\n")
+
+# ============================================================================
+# LIFESPAN CONTEXT MANAGER (Modern FastAPI)
+# ============================================================================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and shutdown events"""
+    # Startup
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("🚀 Financial Stress Test Platform API")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print(f"📊 Version: 3.0.1 (Cloud Run)")
+    print(f"🔐 Authentication: {'✅ ENABLED' if AUTH_LOADED else '❌ DISABLED'}")
+    print(f"📦 Production Features: {'✅ LOADED' if PRODUCTION_LOADED else '❌ NOT LOADED'}")
+    
+    # Check GCS connectivity
     try:
-        logger.info("🚀 Initializing Financial Stress Test API...")
+        from google.cloud import storage
+        client = storage.Client()
+        bucket = client.bucket("mlops-financial-stress-data")
         
-        # Import torch and set single-threaded mode
-        import torch
-        torch.set_num_threads(1)
-        logger.info(f"✅ PyTorch {torch.__version__} initialized (single-threaded)")
-        
-        # Load models from GCS
-        logger.info("📥 Loading models from GCS...")
-        model_loader = GCSModelLoader(
-            bucket_name=Config.GCS_BUCKET,
-            config=Config.MODEL_PATHS
-        )
-        MODELS = model_loader.load_all_models()
-        logger.info("✅ Models loaded")
-        
-        # Load company data
-        logger.info("📊 Loading company data...")
-        DATA_FETCHER = GCSDataFetcher(
-            bucket_name=Config.GCS_BUCKET,
-            data_paths=Config.DATA_PATHS
-        )
-        DATA_FETCHER.load_training_data()
-        logger.info("✅ Company data loaded")
-        
-        # Initialize pipeline
-        logger.info("🔧 Initializing pipeline...")
-        feature_mapper = FeatureMapper(Config.VAE_TO_MODEL2_MAPPING)
-        
-        PIPELINE = StressTestPipeline(
-            models=MODELS,
-            feature_mapper=feature_mapper,
-            data_fetcher=DATA_FETCHER,
-            config=Config
-        )
-        logger.info("✅ Pipeline initialized")
-        
-        # *** CHANGED: Skip pre-generation - generate on demand instead ***
-        logger.info("✅ Pipeline ready (scenarios will be generated on first request)")
-        PIPELINE.scenarios = []  # Initialize empty list
-        
-        INITIALIZED = True
-        logger.info("✅ API READY")
-        return True
-        
+        if bucket.exists():
+            print("✅ GCS Bucket: Connected")
+        else:
+            print("⚠️  GCS Bucket: Not found")
     except Exception as e:
-        logger.error(f"❌ Initialization failed: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        return False
-
-
-@functions_framework.http
-def predict(request):
-    """
-    Main entry point for stress test predictions
+        error_msg = str(e)[:60]
+        print(f"⚠️  GCS: {error_msg}...")
+        print("    (This is OK for local testing)")
     
-    Endpoints:
-    - GET / or /health - Health check
-    - GET /scenarios - List scenarios
-    - POST /stress-test - Run stress test
-    - POST /scenarios/generate - Generate new scenarios
-    - GET /companies - List companies
-    """
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("✨ Server ready!")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
-    # Handle CORS preflight
-    if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Max-Age': '3600'
+    yield
+    
+    # Shutdown
+    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print("🛑 Shutting down Financial Stress Test Platform API")
+    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+# ============================================================================
+# CREATE FASTAPI APPLICATION
+# ============================================================================
+
+app = FastAPI(
+    title="Financial Stress Test Platform",
+    description="Enterprise Risk Analytics with ML-Powered Stress Testing",
+    version="3.0.1",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan,
+    contact={
+        "name": "Parth Saraykar",
+        "email": "parth@financialstress.com"
+    }
+)
+
+# ============================================================================
+# CONFIGURE CORS
+# ============================================================================
+
+# Get allowed origins from environment variable
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "https://storage.googleapis.com,https://mlops-financial-stress-ui.storage.googleapis.com,https://financial-stress-login.storage.googleapis.com"
+).split(",")
+
+# For local development, add localhost
+if os.getenv("ENVIRONMENT", "production") == "development":
+    ALLOWED_ORIGINS.extend([
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000"
+    ])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ============================================================================
+# INCLUDE ROUTERS
+# ============================================================================
+
+print("=" * 80)
+print("🔧 REGISTERING ROUTERS WITH FASTAPI APP...")
+print("=" * 80)
+
+if AUTH_LOADED and auth_router is not None:
+    try:
+        print("   → Including auth router...")
+        app.include_router(auth_router)
+        print("   ✅ Auth router registered successfully!")
+    except Exception as e:
+        print(f"   ❌ Failed to register auth router: {e}")
+        print(traceback.format_exc())
+else:
+    print("   ⚠️  Skipping auth router (not loaded)")
+
+if PRODUCTION_LOADED and prod_router is not None:
+    try:
+        print("   → Including production features router...")
+        app.include_router(prod_router)
+        print("   ✅ Production router registered successfully!")
+    except Exception as e:
+        print(f"   ❌ Failed to register production router: {e}")
+        print(traceback.format_exc())
+else:
+    print("   ⚠️  Skipping production router (not loaded)")
+
+print("=" * 80)
+print(f"📡 TOTAL ROUTERS REGISTERED: {len(app.routes)}")
+print("=" * 80)
+print("\n")
+
+# ============================================================================
+# ROOT ENDPOINTS
+# ============================================================================
+
+@app.get("/")
+async def root():
+    """Root endpoint - API information"""
+    return {
+        "message": "Financial Stress Test Platform API",
+        "version": "3.0.1",
+        "status": "operational",
+        "timestamp": datetime.now().isoformat(),
+        "environment": os.getenv("ENVIRONMENT", "production"),
+        "documentation": {
+            "swagger_ui": "/docs",
+            "redoc": "/redoc"
+        },
+        "features": {
+            "authentication": AUTH_LOADED,
+            "stress_testing": PRODUCTION_LOADED,
+            "batch_processing": PRODUCTION_LOADED,
+            "risk_limits": PRODUCTION_LOADED,
+            "reports": PRODUCTION_LOADED,
+            "portfolio_analysis": PRODUCTION_LOADED
+        },
+        "endpoints": {
+            "health": "/health",
+            "api_health": "/api/v1/health",
+            "login": "/api/v1/auth/login",
+            "stress_test": "/api/v1/stress-test",
+            "scenarios": "/api/v1/scenarios"
         }
-        return ('', 204, headers)
-    
-    # Set CORS headers
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
+    }
+
+@app.get("/health")
+async def health_check():
+    """Simple health check for load balancers"""
+    return {
+        "status": "healthy",
+        "service": "Financial Stress Test Platform",
+        "version": "3.0.1",
+        "timestamp": datetime.now().isoformat()
+    }
+
+@app.get("/api/v1/health")
+async def detailed_health():
+    """Detailed health check with component status"""
+    health_status = {
+        "status": "healthy",
+        "service": "Financial Stress Test Platform",
+        "version": "3.0.1",
+        "timestamp": datetime.now().isoformat(),
+        "components": {
+            "api": "healthy",
+            "auth": "loaded" if AUTH_LOADED else "not_loaded",
+            "production_features": "loaded" if PRODUCTION_LOADED else "not_loaded"
+        }
     }
     
+    # Check GCS connectivity
     try:
-        # Initialize on first request (cached after)
-        if not INITIALIZED:
-            logger.info("First request - initializing...")
-            if not initialize_pipeline():
-                return jsonify({
-                    'error': 'Failed to initialize pipeline',
-                    'status': 'failed'
-                }), 500, headers
-        
-        # Route requests
-        path = request.path
-        method = request.method
-        
-        # Health check - default for root path
-        if method == 'GET' and (path == '/' or path == '/health' or path == ''):
-            return jsonify({
-                'status': 'healthy',
-                'service': 'Financial Stress Test API',
-                'version': '1.0',
-                'models_loaded': MODELS is not None,
-                'pipeline_ready': PIPELINE is not None,
-                'n_scenarios': len(PIPELINE.scenarios) if PIPELINE else 0,
-                'n_companies': len(DATA_FETCHER.company_lookup) if DATA_FETCHER else 0,
-                'endpoints': {
-                    'health': 'GET /health',
-                    'scenarios': 'GET /scenarios',
-                    'companies': 'GET /companies',
-                    'stress_test': 'POST /stress-test',
-                    'generate': 'POST /scenarios/generate'
-                }
-            }), 200, headers
-        
-        # *** CHANGED: Get scenarios - generate on demand if empty ***
-        if method == 'GET' and 'scenarios' in path:
-            # Generate scenarios on first request if empty
-            if not PIPELINE.scenarios:
-                logger.info("📝 No scenarios exist, generating 10 scenarios...")
-                try:
-                    PIPELINE.generate_scenarios(n_scenarios=10)
-                    logger.info(f"✅ Generated {len(PIPELINE.scenarios)} scenarios")
-                except Exception as e:
-                    logger.error(f"❌ Scenario generation failed: {e}")
-                    import traceback
-                    logger.error(traceback.format_exc())
-                    return jsonify({
-                        'error': 'Failed to generate scenarios',
-                        'message': str(e),
-                        'scenarios': [],
-                        'total': 0
-                    }), 500, headers
-            
-            scenarios_list = [
-                {
-                    "scenario_id": s["scenario_id"],
-                    "severity": s["severity"],
-                    "sigma": float(s["sigma"]),
-                    "crisis_type": s.get("crisis_type", "Unknown"),
-                    "preview": {
-                        "GDP": float(s["features"].get("GDP", 0)),
-                        "VIX": float(s["features"].get("VIX", 0)),
-                        "Unemployment_Rate": float(s["features"].get("Unemployment_Rate", 0))
-                    }
-                }
-                for s in PIPELINE.scenarios
-            ]
-            return jsonify({
-                "scenarios": scenarios_list,
-                "total": len(scenarios_list)
-            }), 200, headers
-        
-        # Generate scenarios
-        if method == 'POST' and 'generate' in path:
-            try:
-                request_json = request.get_json(silent=True)
-                n_scenarios = request_json.get('n_scenarios', 10) if request_json else 10
-                
-                logger.info(f"📝 Generating {n_scenarios} scenarios")
-                scenarios = PIPELINE.generate_scenarios(n_scenarios=n_scenarios)
-                logger.info(f"✅ Successfully generated {len(scenarios)} scenarios")
-                
-                return jsonify({
-                    "message": f"Generated {len(scenarios)} scenarios",
-                    "n_scenarios": len(scenarios),
-                    "scenarios": [
-                        {
-                            "scenario_id": s["scenario_id"],
-                            "severity": s["severity"],
-                            "sigma": float(s["sigma"]),
-                            "crisis_type": s.get("crisis_type", "Unknown")
-                        }
-                        for s in scenarios
-                    ]
-                }), 200, headers
-            except Exception as e:
-                logger.error(f"❌ Scenario generation failed: {e}")
-                import traceback
-                logger.error(traceback.format_exc())
-                return jsonify({
-                    'error': 'Failed to generate scenarios',
-                    'message': str(e),
-                    'status': 'failed'
-                }), 500, headers
-        
-        # Run stress test
-        if method == 'POST' and 'stress-test' in path:
-            request_json = request.get_json(silent=True)
-            
-            if not request_json:
-                return jsonify({
-                    'error': 'No JSON data provided',
-                    'example': {
-                        'company_id': 'AAPL',
-                        'scenario_ids': [0, 1, 2]
-                    }
-                }), 400, headers
-            
-            company_id = request_json.get('company_id')
-            scenario_ids = request_json.get('scenario_ids', [])
-            
-            if not company_id:
-                return jsonify({'error': 'company_id is required'}), 400, headers
-            
-            if company_id not in DATA_FETCHER.company_lookup:
-                return jsonify({
-                    'error': f'Company {company_id} not found'
-                }), 404, headers
-            
-            # Run stress test
-            logger.info(f"🧪 Running stress test for {company_id} on {len(scenario_ids)} scenarios")
-            results = PIPELINE.run_stress_test(
-                company_id=company_id,
-                scenario_ids=scenario_ids
-            )
-            
-            # Calculate aggregates if multiple scenarios
-            if len(results) > 1:
-                avg_risk = sum(r["risk_assessment"]["risk_score"] for r in results) / len(results)
-                best_case = min(results, key=lambda x: x["risk_assessment"]["risk_score"])
-                worst_case = max(results, key=lambda x: x["risk_assessment"]["risk_score"])
-                
-                return jsonify({
-                    "company_id": company_id,
-                    "n_scenarios": len(results),
-                    "aggregated": True,
-                    "summary": {
-                        "avg_risk_score": round(avg_risk, 1),
-                        "best_case": best_case,
-                        "worst_case": worst_case
-                    },
-                    "detailed_results": results
-                }), 200, headers
-            else:
-                return jsonify({
-                    "company_id": company_id,
-                    "n_scenarios": 1,
-                    "aggregated": False,
-                    "result": results[0]
-                }), 200, headers
-        
-        # List companies
-        if method == 'GET' and 'companies' in path:
-            companies = [
-                {
-                    "company_id": cid,
-                    "sector": data["sector"]
-                }
-                for cid, data in DATA_FETCHER.company_lookup.items()
-            ]
-            
-            return jsonify({
-                "companies": companies,
-                "total": len(companies)
-            }), 200, headers
-        
-        # Unknown endpoint
-        return jsonify({
-            'error': 'Unknown endpoint',
-            'path': path,
-            'method': method,
-            'available_endpoints': [
-                'GET / or /health - Health check',
-                'GET /scenarios - List scenarios',
-                'POST /stress-test - Run stress test',
-                'POST /scenarios/generate - Generate scenarios',
-                'GET /companies - List companies'
-            ]
-        }), 404, headers
-        
+        from google.cloud import storage
+        client = storage.Client()
+        bucket = client.bucket("mlops-financial-stress-data")
+        bucket.exists()
+        health_status["components"]["gcs"] = "healthy"
     except Exception as e:
-        logger.error(f"Error: {str(e)}", exc_info=True)
-        return jsonify({
-            'error': str(e),
-            'status': 'failed',
-            'type': type(e).__name__
-        }), 500, headers
+        health_status["components"]["gcs"] = "degraded"
+        health_status["status"] = "degraded"
+    
+    return health_status
+
+# ============================================================================
+# ERROR HANDLERS (FIXED - RETURN JSONResponse)
+# ============================================================================
+
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    """Custom 404 error handler"""
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "Not Found",
+            "message": f"The endpoint {request.url.path} does not exist",
+            "documentation": "/docs"
+        }
+    )
+
+@app.exception_handler(500)
+async def internal_error_handler(request, exc):
+    """Custom 500 error handler"""
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "message": "An unexpected error occurred. Check server logs."
+        }
+    )
+
+# Add favicon handler to prevent 404 errors
+@app.get("/favicon.ico")
+async def favicon():
+    """Prevent favicon 404 errors"""
+    return JSONResponse(status_code=204, content={})
+
+# ============================================================================
+# RUN SERVER (LOCAL DEVELOPMENT)
+# ============================================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    # Cloud Run provides PORT environment variable
+    port = int(os.getenv("PORT", 8000))
+    
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        log_level="info"
+    )

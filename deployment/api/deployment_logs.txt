@@ -1,0 +1,510 @@
+2025-12-11 19:23:15 INFO:     169.254.169.126:26546 - "GET /docs HTTP/1.1" 200 OK
+2025-12-11 19:23:15 GET 200 https://financial-stress-api-415219248998.us-east1.run.app/openapi.json
+2025-12-11 19:23:15 INFO:     169.254.169.126:26558 - "GET /openapi.json HTTP/1.1" 200 OK
+2025-12-11 19:36:28 ❌ Model loading failed: No module named 'torch'
+2025-12-11 19:36:28 Traceback (most recent call last):
+  File "/app/model_loader.py", line 191, in load_all_models
+    model1 = self.load_model1()
+             ^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 58, in load_model1
+    vae_dict = pickle.load(f)
+               ^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'torch'
+2025-12-11 19:36:28 Traceback (most recent call last):
+  File "/app/production_features.py", line 111, in initialize_stress_test_pipeline
+    models = model_loader.load_all_models()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 191, in load_all_models
+    model1 = self.load_model1()
+             ^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 58, in load_model1
+    vae_dict = pickle.load(f)
+               ^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'torch'
+2025-12-11 19:36:29 INFO:     Started server process [1]
+2025-12-11 19:36:29 INFO:     Waiting for application startup.
+2025-12-11 19:36:29 INFO:     Application startup complete.
+2025-12-11 19:36:29 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+2025-12-11 19:36:58 GET 500 https://financial-stress-api-mzpueo6f7q-ue.a.run.app/api/v1/auth/login
+2025-12-11 19:36:58 ERROR:    Exception in ASGI application
+2025-12-11 19:36:58 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 812, in app
+    await self.default(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 696, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException: 404: Not Found
+2025-12-11 19:36:58 During handling of the above exception, another exception occurred:
+2025-12-11 19:36:58 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 78, in wrapped_app
+    await response(scope, receive, sender)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:36:58 During handling of the above exception, another exception occurred:
+2025-12-11 19:36:58 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 404, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 181, in __call__
+    await response(scope, receive, send)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:36:58 ✅ Default users created:
+2025-12-11 19:36:58    admin / admin123 (Administrator)
+2025-12-11 19:36:58    risk_manager / risk123 (Risk Manager)
+2025-12-11 19:36:58    analyst / analyst123 (Analyst)
+2025-12-11 19:36:58    viewer / viewer123 (Viewer)
+2025-12-11 19:36:58    auditor / auditor123 (Auditor)
+2025-12-11 19:36:58 ⚠️  Warning: Could not load auth_system.py: email-validator is not installed, run `pip install pydantic[email]`
+2025-12-11 19:36:58     Running without authentication
+2025-12-11 19:36:58 ✅ Loaded YOUR stress test pipeline (Model 1→2→3 with SHAP)
+2025-12-11 19:36:58 🔧 Initializing YOUR stress test pipeline...
+2025-12-11 19:36:58    → Loading models from GCS...
+2025-12-11 19:36:58 ❌ Pipeline initialization failed: No module named 'torch'
+2025-12-11 19:36:58 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:36:58 🚀 Financial Stress Test Platform API
+2025-12-11 19:36:58 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:36:58 📊 Version: 3.0.1 (Cloud Run)
+2025-12-11 19:36:58 🔐 Authentication: Disabled
+2025-12-11 19:36:58 ✅ Production Features: Loaded
+2025-12-11 19:36:58 ✅ GCS Bucket: Connected
+2025-12-11 19:36:58 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:36:58 ✨ Server ready!
+2025-12-11 19:36:58 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:36:58 INFO:     169.254.169.126:38006 - "GET /api/v1/auth/login HTTP/1.1" 500 Internal Server Error
+2025-12-11 19:36:59 GET 500 https://financial-stress-api-mzpueo6f7q-ue.a.run.app/favicon.ico
+2025-12-11 19:36:59 ERROR:    Exception in ASGI application
+2025-12-11 19:36:59 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 812, in app
+    await self.default(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 696, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException: 404: Not Found
+2025-12-11 19:36:59 During handling of the above exception, another exception occurred:
+2025-12-11 19:36:59 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 78, in wrapped_app
+    await response(scope, receive, sender)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:36:59 During handling of the above exception, another exception occurred:
+2025-12-11 19:36:59 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 404, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 181, in __call__
+    await response(scope, receive, send)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:36:59 INFO:     169.254.169.126:38008 - "GET /favicon.ico HTTP/1.1" 500 Internal Server Error
+2025-12-11 19:37:02 GET 200 https://financial-stress-api-mzpueo6f7q-ue.a.run.app/
+2025-12-11 19:37:02 INFO:     169.254.169.126:38024 - "GET / HTTP/1.1" 200 OK
+2025-12-11 19:37:02 GET 500 https://financial-stress-api-mzpueo6f7q-ue.a.run.app/favicon.ico
+2025-12-11 19:37:02 ERROR:    Exception in ASGI application
+2025-12-11 19:37:02 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 812, in app
+    await self.default(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 696, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException: 404: Not Found
+2025-12-11 19:37:02 During handling of the above exception, another exception occurred:
+2025-12-11 19:37:02 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 78, in wrapped_app
+    await response(scope, receive, sender)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:37:02 During handling of the above exception, another exception occurred:
+2025-12-11 19:37:02 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 404, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 181, in __call__
+    await response(scope, receive, send)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:37:02 INFO:     169.254.169.126:38028 - "GET /favicon.ico HTTP/1.1" 500 Internal Server Error
+2025-12-11 19:37:36 INFO:     Shutting down
+2025-12-11 19:37:36 INFO:     Waiting for application shutdown.
+2025-12-11 19:37:36 INFO:     Application shutdown complete.
+2025-12-11 19:37:36 INFO:     Finished server process [1]
+2025-12-11 19:37:36 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:37:36 🛑 Shutting down Financial Stress Test Platform API
+2025-12-11 19:37:36 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:43:58 GET 200 https://financial-stress-api-415219248998.us-east1.run.app/
+2025-12-11 19:43:58 INFO:     169.254.169.126:4118 - "GET / HTTP/1.1" 200 OK
+2025-12-11 19:43:59 GET 500 https://financial-stress-api-415219248998.us-east1.run.app/favicon.ico
+2025-12-11 19:43:59 ERROR:    Exception in ASGI application
+2025-12-11 19:43:59 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 812, in app
+    await self.default(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 696, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException: 404: Not Found
+2025-12-11 19:43:59 During handling of the above exception, another exception occurred:
+2025-12-11 19:43:59 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 78, in wrapped_app
+    await response(scope, receive, sender)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:43:59 During handling of the above exception, another exception occurred:
+2025-12-11 19:43:59 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 404, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 181, in __call__
+    await response(scope, receive, send)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:43:59 INFO:     169.254.169.126:4128 - "GET /favicon.ico HTTP/1.1" 500 Internal Server Error
+2025-12-11 19:44:41 GET 200 https://financial-stress-api-415219248998.us-east1.run.app/
+2025-12-11 19:44:41 INFO:     169.254.169.126:17344 - "GET / HTTP/1.1" 200 OK
+2025-12-11 19:53:08 ❌ Model loading failed: No module named 'torch'
+2025-12-11 19:53:08 Traceback (most recent call last):
+  File "/app/model_loader.py", line 191, in load_all_models
+    model1 = self.load_model1()
+             ^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 58, in load_model1
+    vae_dict = pickle.load(f)
+               ^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'torch'
+2025-12-11 19:53:08 Traceback (most recent call last):
+  File "/app/production_features.py", line 111, in initialize_stress_test_pipeline
+    models = model_loader.load_all_models()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 191, in load_all_models
+    model1 = self.load_model1()
+             ^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 58, in load_model1
+    vae_dict = pickle.load(f)
+               ^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'torch'
+2025-12-11 19:53:09 INFO:     Started server process [1]
+2025-12-11 19:53:09 INFO:     Waiting for application startup.
+2025-12-11 19:53:09 INFO:     Application startup complete.
+2025-12-11 19:53:09 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+2025-12-11 19:53:20 GET 200 https://financial-stress-api-415219248998.us-east1.run.app/
+2025-12-11 19:53:20 ⚠️  Warning: Could not load auth_system.py: email-validator is not installed, run `pip install pydantic[email]`
+2025-12-11 19:53:20     Running without authentication
+2025-12-11 19:53:20 ✅ Loaded YOUR stress test pipeline (Model 1→2→3 with SHAP)
+2025-12-11 19:53:20 🔧 Initializing YOUR stress test pipeline...
+2025-12-11 19:53:20    → Loading models from GCS...
+2025-12-11 19:53:20 ❌ Pipeline initialization failed: No module named 'torch'
+2025-12-11 19:53:20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:53:20 🚀 Financial Stress Test Platform API
+2025-12-11 19:53:20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:53:20 📊 Version: 3.0.1 (Cloud Run)
+2025-12-11 19:53:20 🔐 Authentication: Disabled
+2025-12-11 19:53:20 ✅ Production Features: Loaded
+2025-12-11 19:53:20 ✅ GCS Bucket: Connected
+2025-12-11 19:53:20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:53:20 ✨ Server ready!
+2025-12-11 19:53:20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:53:20 INFO:     169.254.169.126:56298 - "GET / HTTP/1.1" 200 OK
+2025-12-11 19:53:20 GET 500 https://financial-stress-api-415219248998.us-east1.run.app/favicon.ico
+2025-12-11 19:53:20 ERROR:    Exception in ASGI application
+2025-12-11 19:53:20 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 812, in app
+    await self.default(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 696, in not_found
+    raise HTTPException(status_code=404)
+starlette.exceptions.HTTPException: 404: Not Found
+2025-12-11 19:53:20 During handling of the above exception, another exception occurred:
+2025-12-11 19:53:20 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 78, in wrapped_app
+    await response(scope, receive, sender)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:53:20 During handling of the above exception, another exception occurred:
+2025-12-11 19:53:20 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 404, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 181, in __call__
+    await response(scope, receive, send)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'dict' object is not callable
+2025-12-11 19:53:20 INFO:     169.254.169.126:56314 - "GET /favicon.ico HTTP/1.1" 500 Internal Server Error
+2025-12-11 19:54:20 INFO:     Shutting down
+2025-12-11 19:54:20 INFO:     Waiting for application shutdown.
+2025-12-11 19:54:20 INFO:     Application shutdown complete.
+2025-12-11 19:54:20 INFO:     Finished server process [1]
+2025-12-11 19:54:20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 19:54:20 🛑 Shutting down Financial Stress Test Platform API
+2025-12-11 19:54:20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 20:00:27 ❌ Model loading failed: No module named 'torch'
+2025-12-11 20:00:27 Traceback (most recent call last):
+  File "/app/model_loader.py", line 191, in load_all_models
+    model1 = self.load_model1()
+             ^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 58, in load_model1
+    vae_dict = pickle.load(f)
+               ^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'torch'
+2025-12-11 20:00:27 Traceback (most recent call last):
+  File "/app/production_features.py", line 111, in initialize_stress_test_pipeline
+    models = model_loader.load_all_models()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 191, in load_all_models
+    model1 = self.load_model1()
+             ^^^^^^^^^^^^^^^^^^
+  File "/app/model_loader.py", line 58, in load_model1
+    vae_dict = pickle.load(f)
+               ^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'torch'
+2025-12-11 20:00:27 INFO:     Started server process [1]
+2025-12-11 20:00:27 INFO:     Waiting for application startup.
+2025-12-11 20:00:27 INFO:     Application startup complete.
+2025-12-11 20:00:27 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+2025-12-11 20:00:51 GET 200 https://financial-stress-api-415219248998.us-east1.run.app/
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 🔍 LOADING AUTHENTICATION SYSTEM...
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51    → Step 1: Importing auth_system module...
+2025-12-11 20:00:51    ❌ ImportError: email-validator is not installed, run `pip install pydantic[email]`
+2025-12-11 20:00:51    Full traceback:
+2025-12-11 20:00:51 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/pydantic/networks.py", line 352, in import_email_validator
+    import email_validator
+ModuleNotFoundError: No module named 'email_validator'
+2025-12-11 20:00:51 The above exception was the direct cause of the following exception:
+2025-12-11 20:00:51 Traceback (most recent call last):
+  File "/app/main.py", line 491, in <module>
+    from auth_system import router as auth_router
+  File "/app/auth_system.py", line 807, in <module>
+    class UserCreate(BaseModel):
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_model_construction.py", line 182, in __new__
+    complete_model_class(
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_model_construction.py", line 491, in complete_model_class
+    schema = cls.__get_pydantic_core_schema__(cls, handler)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 578, in __get_pydantic_core_schema__
+    return __handler(__source)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_schema_generation_shared.py", line 82, in __call__
+    schema = self._handler(__source_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 468, in generate_schema
+    schema = self._generate_schema(obj)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 700, in _generate_schema
+    schema = self._post_process_generated_schema(self._generate_schema_inner(obj))
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 722, in _generate_schema_inner
+    return self._model_schema(obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 541, in _model_schema
+    {k: self._generate_md_field_schema(k, v, decorators) for k, v in fields.items()},
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 541, in <dictcomp>
+    {k: self._generate_md_field_schema(k, v, decorators) for k, v in fields.items()},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 886, in _generate_md_field_schema
+    common_field = self._common_field_schema(name, field_info, decorators)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 951, in _common_field_schema
+    schema = self._apply_annotations(
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 1654, in _apply_annotations
+    schema = get_inner_schema(source_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_schema_generation_shared.py", line 82, in __call__
+    schema = self._handler(__source_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 1633, in inner_handler
+    from_property = self._generate_schema_from_property(obj, obj)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/_internal/_generate_schema.py", line 616, in _generate_schema_from_property
+    schema = get_schema(
+             ^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/pydantic/networks.py", line 390, in __get_pydantic_core_schema__
+    import_email_validator()
+  File "/usr/local/lib/python3.11/site-packages/pydantic/networks.py", line 354, in import_email_validator
+    raise ImportError('email-validator is not installed, run `pip install pydantic[email]`') from e
+ImportError: email-validator is not installed, run `pip install pydantic[email]`
+2025-12-11 20:00:51    ⚠️  AUTH WILL BE DISABLED
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 🔐 FINAL AUTH STATUS: ❌ DISABLED
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 🔍 LOADING PRODUCTION FEATURES...
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51    → Importing production_features module...
+2025-12-11 20:00:51 ✅ Loaded YOUR stress test pipeline (Model 1→2→3 with SHAP)
+2025-12-11 20:00:51 🔧 Initializing YOUR stress test pipeline...
+2025-12-11 20:00:51    → Loading models from GCS...
+2025-12-11 20:00:51 ❌ Pipeline initialization failed: No module named 'torch'
+2025-12-11 20:00:51    ✅ Production features imported!
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 📦 PRODUCTION FEATURES: ✅ LOADED
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 🔧 REGISTERING ROUTERS WITH FASTAPI APP...
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51    ⚠️  Skipping auth router (not loaded)
+2025-12-11 20:00:51    → Including production features router...
+2025-12-11 20:00:51    ✅ Production router registered successfully!
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 📡 TOTAL ROUTERS REGISTERED: 22
+2025-12-11 20:00:51 ================================================================================
+2025-12-11 20:00:51 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 20:00:51 🚀 Financial Stress Test Platform API
+2025-12-11 20:00:51 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 20:00:51 📊 Version: 3.0.1 (Cloud Run)
+2025-12-11 20:00:51 🔐 Authentication: ❌ DISABLED
+2025-12-11 20:00:51 📦 Production Features: ✅ LOADED
+2025-12-11 20:00:51 ✅ GCS Bucket: Connected
+2025-12-11 20:00:51 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 20:00:51 ✨ Server ready!
+2025-12-11 20:00:51 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 20:00:51 INFO:     169.254.169.126:64664 - "GET / HTTP/1.1" 200 OK
+2025-12-11 20:00:52 GET 204 https://financial-stress-api-415219248998.us-east1.run.app/favicon.ico
+2025-12-11 20:00:52 INFO:     169.254.169.126:64676 - "GET /favicon.ico HTTP/1.1" 204 No Content
+2025-12-11 20:00:52 ERROR:    Exception in ASGI application
+2025-12-11 20:00:52 Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 404, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 782, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 297, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 77, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 75, in app
+    await response(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/responses.py", line 155, in __call__
+    await send({"type": "http.response.body", "body": self.body})
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 50, in sender
+    await send(message)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 50, in sender
+    await send(message)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 161, in _send
+    await send(message)
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/h11_impl.py", line 501, in send
+    output = self.conn.send(event=h11.Data(data=data))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/h11/_connection.py", line 538, in send
+    data_list = self.send_with_data_passthrough(event)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/h11/_connection.py", line 571, in send_with_data_passthrough
+    writer(event, data_list.append)
+  File "/usr/local/lib/python3.11/site-packages/h11/_writers.py", line 65, in __call__
+    self.send_data(event.data, write)
+  File "/usr/local/lib/python3.11/site-packages/h11/_writers.py", line 91, in send_data
+    raise LocalProtocolError("Too much data for declared Content-Length")
+h11._util.LocalProtocolError: Too much data for declared Content-Length
+2025-12-11 20:01:41 INFO:     Shutting down
+2025-12-11 20:01:41 INFO:     Waiting for application shutdown.
+2025-12-11 20:01:41 INFO:     Application shutdown complete.
+2025-12-11 20:01:41 INFO:     Finished server process [1]
+2025-12-11 20:01:41 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2025-12-11 20:01:41 🛑 Shutting down Financial Stress Test Platform API
+2025-12-11 20:01:41 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

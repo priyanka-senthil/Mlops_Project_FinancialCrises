@@ -20,6 +20,10 @@ class StressTestPipeline:
         self.data_fetcher = data_fetcher
         self.config = config
         self.scenarios = []
+
+        print(f"   DEBUG: model1 type: {type(self.model1)}")
+        print(f"   DEBUG: model1 keys: {self.model1.keys() if isinstance(self.model1, dict) else 'Not a dict'}")
+        print(f"   DEBUG: model1 contents: {list(self.model1.keys()) if isinstance(self.model1, dict) else self.model1}")
         
         # Initialize SHAP explainer for Model 3 (do once at startup)
         try:
@@ -112,57 +116,175 @@ class StressTestPipeline:
         return np.array(risk_scores)
     
     def generate_scenarios(self, n_scenarios: int = 10) -> List[Dict]:
-        """Generate scenarios using Model 1 (VAE)"""
-        logger.info(f"🎲 Generating {n_scenarios} scenarios with Model 1...")
+        """Generate scenarios with GUARANTEED diversity across severities"""
         
-        scenarios = []
+        print(f"   Generating {n_scenarios} scenarios with forced diversity...")
         
-        for severity, params in self.config.SCENARIO_SEVERITIES.items():
-            count = params["count"]
-            sigma = params["sigma"]
+        new_scenarios = []
+        starting_id = len(self.scenarios) + 1
+        
+        # FORCE distribution: 30% baseline, 40% adverse, 30% severe
+        n_baseline = max(1, int(n_scenarios * 0.3))
+        n_adverse = max(1, int(n_scenarios * 0.4))
+        n_severe = max(1, n_scenarios - n_baseline - n_adverse)
+        
+        print(f"   → Targeting: {n_baseline} baseline, {n_adverse} adverse, {n_severe} severe")
+        
+        # Generate baseline scenarios (LOW sigma = mild conditions)
+        for i in range(n_baseline):
+            sigma = np.random.uniform(0.3, 0.8)  # Low variation
+            scenario_data = self._generate_single_scenario(sigma)
             
-            # Generate 'count' scenarios for this severity
-            for i in range(count):
-                if len(scenarios) >= n_scenarios:
-                    break
-                
-                scenario_data = self._generate_single_scenario(sigma)
-                
-                scenarios.append({
-                    "scenario_id": len(scenarios) + 1,
-                    "severity": severity,
-                    "sigma": sigma,
-                    "crisis_type": self._determine_crisis_type(scenario_data, severity),
-                    "features": scenario_data
-                })
+            new_scenarios.append({
+                "scenario_id": starting_id + len(new_scenarios),
+                "severity": "baseline",
+                "sigma": sigma,
+                "crisis_type": "Normal Economy",
+                "features": scenario_data
+            })
+        
+        # Generate adverse scenarios (MEDIUM sigma = moderate stress)
+        for i in range(n_adverse):
+            sigma = np.random.uniform(1.8, 3.0)  # Medium variation
+            scenario_data = self._generate_single_scenario(sigma)
             
-            if len(scenarios) >= n_scenarios:
-                break
+            new_scenarios.append({
+                "scenario_id": starting_id + len(new_scenarios),
+                "severity": "adverse",
+                "sigma": sigma,
+                "crisis_type": "Economic Downturn",
+                "features": scenario_data
+            })
         
-        self.scenarios = scenarios
-        logger.info(f"   ✓ Generated {len(self.scenarios)} scenarios")
+        # Generate severe scenarios (HIGH sigma = extreme crisis)
+        for i in range(n_severe):
+            sigma = np.random.uniform(3.5, 6.0)  # Very high variation
+            scenario_data = self._generate_single_scenario(sigma)
+            
+            new_scenarios.append({
+                "scenario_id": starting_id + len(new_scenarios),
+                "severity": "severe",
+                "sigma": sigma,
+                "crisis_type": "Severe Economic Crisis",
+                "features": scenario_data
+            })
         
-        return self.scenarios
-    
-    def _generate_single_scenario(self, sigma: float) -> Dict:
-        """Generate single scenario using VAE scaler"""
-        vae_data = self.model1
-        scaler = vae_data.get("scaler")
-        feature_names = vae_data.get("features", [])
+        # Verify and adjust labels based on actual values
+        print(f"   → Verifying severity labels match actual values...")
         
-        # Sample from normal distribution with specified sigma
-        z_scaled = np.random.normal(0, sigma, size=len(feature_names))
+        for scenario in new_scenarios:
+            features = scenario['features']
+            
+            # Calculate actual severity from values
+            actual_severity_score = 0
+            
+            if 'Unemployment_Rate' in features and features['Unemployment_Rate'] > 8:
+                actual_severity_score += 2
+            if 'VIX' in features and features['VIX'] > 35:
+                actual_severity_score += 2
+            if 'GDP' in features and features['GDP'] < 14000:
+                actual_severity_score += 2
+            
+            # Override label if values don't match
+            if actual_severity_score >= 4 and scenario['severity'] == 'baseline':
+                print(f"      ⚠️  Scenario {scenario['scenario_id']}: Relabeling baseline → adverse (high severity indicators)")
+                scenario['severity'] = 'adverse'
+                scenario['crisis_type'] = 'Economic Downturn'
+            elif actual_severity_score >= 5 and scenario['severity'] == 'adverse':
+                print(f"      ⚠️  Scenario {scenario['scenario_id']}: Relabeling adverse → severe (extreme values)")
+                scenario['severity'] = 'severe'
+                scenario['crisis_type'] = 'Severe Economic Crisis'
         
-        # Inverse transform to get realistic values
-        generated_values = scaler.inverse_transform(z_scaled.reshape(1, -1))[0]
+        # Append to existing scenarios
+        self.scenarios.extend(new_scenarios)
         
-        # Create dict with feature names
-        scenario_dict = {}
-        for i, name in enumerate(feature_names):
-            scenario_dict[name] = float(generated_values[i])
+        # Count final distribution
+        final_baseline = sum(1 for s in new_scenarios if s['severity'] == 'baseline')
+        final_adverse = sum(1 for s in new_scenarios if s['severity'] == 'adverse')
+        final_severe = sum(1 for s in new_scenarios if s['severity'] == 'severe')
         
-        return scenario_dict
-    
+        print(f"   ✓ Generated {len(new_scenarios)} scenarios:")
+        print(f"      • {final_baseline} baseline")
+        print(f"      • {final_adverse} adverse")
+        print(f"      • {final_severe} severe")
+        print(f"   Total scenarios: {len(self.scenarios)}")
+        
+        return new_scenarios
+        
+    def _generate_single_scenario(self, sigma: float) -> Dict[str, float]:
+        """Generate scenario using VAE scaler - CORRECTED"""
+        try:
+            print(f"      → VAE generation (sigma={sigma:.1f})...")
+            
+            scaler = self.model1.get("scaler")
+            if scaler is None or not hasattr(scaler, 'mean_'):
+                raise ValueError("No scaler")
+            
+            n_features = len(scaler.mean_)
+            print(f"         ✓ Scaler has {n_features} features")
+            
+            # CORRECT VAE SAMPLING:
+            # 1. Sample from standard normal
+            z = np.random.randn(n_features)
+            
+            # 2. Scale by sigma (controls severity)
+            z_scaled = z * sigma
+            
+            # 3. Apply to NORMALIZED space (in standard deviations)
+            # Don't add to mean yet - work in normalized space first
+            normalized_sample = z_scaled
+            
+            # 4. NOW transform to original scale
+            # Formula: X = mean + (z * std)
+            generated_values = scaler.mean_ + (normalized_sample * scaler.scale_)
+            
+            print(f"         ✓ Generated {len(generated_values)} raw values")
+            print(f"         → Sample values: [{generated_values[0]:.1f}, {generated_values[1]:.1f}, {generated_values[2]:.1f}, ...]")
+            
+            # Map to feature names
+            feature_names = self.model1.get("features", [])
+            
+            if len(feature_names) == len(generated_values):
+                scenario_dict = {
+                    feature_names[i]: float(generated_values[i]) 
+                    for i in range(len(feature_names))
+                }
+            else:
+                vae_features = list(self.config.VAE_TO_MODEL2_MAPPING.keys())
+                scenario_dict = {
+                    name: float(val) 
+                    for name, val in zip(vae_features[:len(generated_values)], generated_values)
+                }
+            
+                # ===== Minimal validation ONLY (fix negatives, keep natural range) =====
+            print(f"         → Validating VAE output...")
+            
+            # Only fix impossible values (negatives), DON'T clip to narrow ranges
+            for key in scenario_dict.keys():
+                value = scenario_dict[key]
+                
+                # Fix negatives (abs value)
+                if value < 0 and key in ['GDP', 'VIX', 'Unemployment_Rate', 'CPI', 'Oil_Price', 'SP500_Close', 'Consumer_Confidence']:
+                    scenario_dict[key] = abs(value)
+                    print(f"            {key}: {value:.1f} → {abs(value):.1f} (removed negative)")
+                
+                # Only Federal_Funds_Rate has ZLB constraint
+                elif key == 'Federal_Funds_Rate' and value < 0:
+                    scenario_dict[key] = 0.0
+                    print(f"            Fed Rate: {value:.2f}% → 0.00% (ZLB)")
+            
+                # Log sample values
+                print(f"         ✓ VAE output validated (minimal intervention)")
+                if 'GDP' in scenario_dict:
+                    print(f"            Sample: GDP=${scenario_dict['GDP']/1000:.1f}T, VIX={scenario_dict.get('VIX', 0):.1f}, Unemp={scenario_dict.get('Unemployment_Rate', 0):.1f}%")
+                
+            
+                
+                return scenario_dict
+                
+        except Exception as e:
+            print(f"      ❌ VAE failed: {e}")
+        raise  # Let it fail instead of silent fallback
     def _determine_crisis_type(self, features: Dict, severity: str) -> str:
         """Determine crisis type from features"""
         vix = features.get("VIX", 20)
