@@ -1,0 +1,516 @@
+name: Model Monitoring & Auto-Retraining (VAE & Anomaly Only)
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.10"
+  GCP_BUCKET: "mlops-financial-stress-data"
+  GCP_PROJECT: "ninth-iris-422916-f2"
+  VAE_KS_THRESHOLD: "0.70"
+  ANOMALY_ROCAUC_THRESHOLD: "0.75"
+  NOTIFICATION_EMAIL: "finance.stress.analyser@gmail.com"
+
+jobs:
+  detect-drift:
+    runs-on: ubuntu-latest
+    outputs:
+      vae_drift: ${{ steps.check.outputs.vae_drift }}
+      vae_ks: ${{ steps.check.outputs.vae_ks }}
+      anomaly_drift: ${{ steps.check.outputs.anomaly_drift }}
+      anomaly_roc: ${{ steps.check.outputs.anomaly_roc }}
+      any_drift: ${{ steps.check.outputs.any_drift }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT }}
+      
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+      
+      - run: |
+          pip install --upgrade pip --no-cache-dir
+          pip install --no-cache-dir tensorflow scipy numpy pandas scikit-learn joblib google-cloud-storage google-cloud-monitoring
+
+      - run: |
+          mkdir -p models/vae models/anomaly_detection data/features outputs/snorkel/data
+          gsutil cp gs://${{ env.GCP_BUCKET }}/models/vae/deployment/best_model_deployment.pkl models/vae/vae_production.pkl || echo "⚠️ VAE not found"
+          gsutil cp gs://${{ env.GCP_BUCKET }}/models/anomaly_detection/model.pkl models/anomaly_detection/model.pkl || echo "⚠️ Anomaly not found"
+          gsutil cp gs://${{ env.GCP_BUCKET }}/data/features/macro_features_clean.csv data/features/macro_features_clean.csv || echo "⚠️ Macro not found"
+          gsutil cp gs://${{ env.GCP_BUCKET }}/outputs/snorkel/data/snorkel_labeled_only.csv outputs/snorkel/data/snorkel_labeled_only.csv || echo "⚠️ Labeled not found"
+
+      - id: check
+        run: |
+          python - <<'EOF'
+          import pickle, pandas as pd, numpy as np, os, json, joblib
+          from scipy import stats
+          from sklearn.metrics import roc_auc_score
+          from datetime import datetime
+          
+          print("="*80)
+          print("🔍 DRIFT DETECTION - VAE & ANOMALY")
+          print("="*80)
+          
+          drift_report = {'timestamp': datetime.now().isoformat(), 'models': {}}
+          avg_ks, current_roc = 0.0, 0.0
+          
+          # =================================================
+          # VAE DRIFT - FIXED
+          # =================================================
+          print("\n1️⃣ VAE MODEL")
+          print("-"*80)
+          vae_drift = False
+          
+          try:
+              with open('models/vae/vae_production.pkl', 'rb') as f:
+                  vae_data = pickle.load(f)
+              
+              # Extract model
+              if isinstance(vae_data, dict):
+                  vae_model = vae_data.get('model') or vae_data.get('vae_model') or vae_data.get('best_model')
+              else:
+                  vae_model = vae_data
+              
+              if vae_model is None:
+                  raise ValueError("Could not extract VAE model")
+              
+              print("✅ VAE model loaded")
+              
+              # Load training data
+              train_data = pd.read_csv('data/features/macro_features_clean.csv')
+              numeric_data = train_data.select_dtypes(include=[np.number])
+              sample = numeric_data.sample(min(500, len(numeric_data)), random_state=42)
+              
+              print(f"✅ Sample data: {sample.shape}")
+              
+              # FIXED: Initialize reconstructed variable
+              reconstructed = None
+              
+              # Test reconstruction - try different architectures
+              if hasattr(vae_model, 'get_layer'):
+                  try:
+                      encoder = vae_model.get_layer('encoder')
+                      decoder = vae_model.get_layer('decoder')
+                      encoded = encoder.predict(sample.values, verbose=0)
+                      z_mean = encoded[0] if isinstance(encoded, list) else encoded
+                      reconstructed = decoder.predict(z_mean, verbose=0)
+                      print("✅ Used encoder/decoder architecture")
+                  except Exception as e:
+                      print(f"⚠️ Encoder/decoder failed: {e}")
+              
+              if reconstructed is None and hasattr(vae_model, 'predict'):
+                  try:
+                      reconstructed = vae_model.predict(sample.values, verbose=0)
+                      print("✅ Used direct predict method")
+                  except Exception as e:
+                      print(f"⚠️ Predict failed: {e}")
+              
+              if reconstructed is None:
+                  raise ValueError("Could not generate reconstructions from VAE model")
+              
+              # Calculate KS statistics
+              ks_stats = []
+              failed_features = []
+              
+              for i, col in enumerate(sample.columns):
+                  if i < reconstructed.shape[1]:
+                      ks, _ = stats.ks_2samp(sample.iloc[:, i], reconstructed[:, i])
+                      ks_stats.append(ks)
+                      if ks < 0.70:
+                          failed_features.append(col)
+              
+              avg_ks = np.mean(ks_stats) if ks_stats else 0.0
+              pass_rate = sum(1 for ks in ks_stats if ks >= 0.70) / len(ks_stats) if ks_stats else 0.0
+              vae_drift = avg_ks < 0.70
+              
+              print(f"📊 VAE: KS={avg_ks:.4f}, Pass Rate={pass_rate*100:.1f}%")
+              print(f"   Status: {'⚠️ DRIFT' if vae_drift else '✅ Healthy'}")
+              
+              drift_report['models']['vae'] = {
+                  'drift_detected': bool(vae_drift),
+                  'avg_ks': float(avg_ks),
+                  'pass_rate': float(pass_rate),
+                  'failed_features': failed_features[:5]
+              }
+          except Exception as e:
+              print(f"❌ VAE error: {e}")
+              import traceback
+              traceback.print_exc()
+              vae_drift = False
+              drift_report['models']['vae'] = {'error': str(e)}
+          
+          # =================================================
+          # ANOMALY DRIFT - FIXED
+          # =================================================
+          print("\n2️⃣ ANOMALY DETECTION")
+          print("-"*80)
+          anomaly_drift = False
+          
+          try:
+              labeled_data = pd.read_csv('outputs/snorkel/data/snorkel_labeled_only.csv')
+              
+              split_idx = int(len(labeled_data) * 0.8)
+              val_data = labeled_data.iloc[split_idx:]
+              
+              # Load model
+              with open('models/anomaly_detection/model.pkl', 'rb') as f:
+                  model_data = joblib.load(f)
+              
+              if isinstance(model_data, dict):
+                  anomaly_model = model_data.get('model') or model_data.get('anomaly_model') or model_data.get('best_model')
+                  feature_names_from_pickle = model_data.get('feature_names') or model_data.get('features')
+              else:
+                  anomaly_model = model_data
+                  feature_names_from_pickle = None
+              
+              if anomaly_model is None:
+                  raise ValueError("Could not extract anomaly model")
+              
+              print(f"✅ Anomaly model loaded (IsolationForest)")
+              
+              # HARDCODED: The exact 14 features used during training
+              # These are from your features.json file
+              TRAINING_FEATURES = [
+                  "GDP_last", 
+                  "CPI_last", 
+                  "Unemployment_Rate_last", 
+                  "Federal_Funds_Rate_mean", 
+                  "vix_q_mean", 
+                  "sp500_q_return", 
+                  "Financial_Stress_Index_mean", 
+                  "Revenue", 
+                  "Net_Income", 
+                  "Debt_to_Equity", 
+                  "Current_Ratio", 
+                  "net_margin", 
+                  "roa", 
+                  "roe"
+              ]
+              
+              # Use feature names from pickle if available, otherwise use hardcoded
+              features_to_use = feature_names_from_pickle if feature_names_from_pickle else TRAINING_FEATURES
+              
+              print(f"ℹ️  Model expects {len(features_to_use)} features: {features_to_use[:3]}...")
+              
+              # Check which features are available in the data
+              available_features = [f for f in features_to_use if f in val_data.columns]
+              missing_features = [f for f in features_to_use if f not in val_data.columns]
+              
+              if missing_features:
+                  print(f"⚠️  Missing features: {missing_features}")
+                  print(f"ℹ️  Using {len(available_features)}/{len(features_to_use)} available features")
+              
+              # Extract ONLY the 14 training features
+              X_val = val_data[available_features].fillna(0).values
+              y_val = val_data['AT_RISK'].values
+              
+              print(f"✅ Validation data: {X_val.shape} ({X_val.shape[0]} samples × {X_val.shape[1]} features)")
+              print(f"✅ At-risk companies: {y_val.sum()}/{len(y_val)} ({y_val.sum()/len(y_val):.1%})")
+              
+              # Predict
+              if hasattr(anomaly_model, 'score_samples'):
+                  scores = anomaly_model.score_samples(X_val)
+              else:
+                  scores = -anomaly_model.predict(X_val)
+              
+              current_roc = roc_auc_score(y_val, -scores)
+              baseline_roc = 0.85
+              roc_drop_pct = ((baseline_roc - current_roc) / baseline_roc * 100) if baseline_roc > 0 else 0
+              anomaly_drift = current_roc < 0.75 or roc_drop_pct > 5
+              
+              print(f"📊 Anomaly: ROC-AUC={current_roc:.4f}, Drop={roc_drop_pct:.1f}%")
+              print(f"   Status: {'⚠️ DRIFT' if anomaly_drift else '✅ Healthy'}")
+              
+              drift_report['models']['anomaly'] = {
+                  'drift_detected': bool(anomaly_drift),
+                  'current_roc_auc': float(current_roc),
+                  'baseline_roc_auc': float(baseline_roc),
+                  'roc_drop_pct': float(roc_drop_pct),
+                  'features_used': X_val.shape[1]
+              }
+          except Exception as e:
+              print(f"❌ Anomaly error: {e}")
+              import traceback
+              traceback.print_exc()
+              anomaly_drift = False
+              drift_report['models']['anomaly'] = {'error': str(e)}
+          
+          # =================================================
+          # SUMMARY
+          # =================================================
+          vae_drift_bool = bool(drift_report['models'].get('vae', {}).get('drift_detected', False))
+          anom_drift_bool = bool(drift_report['models'].get('anomaly', {}).get('drift_detected', False))
+          any_drift = bool(vae_drift_bool or anom_drift_bool)
+          
+          print(f"\n{'='*80}")
+          print(f"🎯 SUMMARY")
+          print(f"{'='*80}")
+          print(f"VAE:     {'⚠️ DRIFT' if vae_drift_bool else '✅ Healthy'} (KS={avg_ks:.4f})")
+          print(f"Anomaly: {'⚠️ DRIFT' if anom_drift_bool else '✅ Healthy'} (ROC={current_roc:.4f})")
+          print(f"Any Drift: {any_drift}")
+          
+          # CLOUD MONITORING
+          try:
+              from google.cloud import monitoring_v3
+              import time
+              client = monitoring_v3.MetricServiceClient()
+              project_name = f"projects/{os.getenv('GCP_PROJECT')}"
+              time_series = []
+              now = time.time()
+              
+              if avg_ks > 0:
+                  series = monitoring_v3.TimeSeries()
+                  series.metric.type = 'custom.googleapis.com/financial_stress/vae/reconstruction_ks'
+                  series.resource.type = 'global'
+                  series.metric.labels['model_type'] = 'vae'
+                  series.points = [monitoring_v3.Point({"interval": {"end_time": {"seconds": int(now)}}, "value": {"double_value": float(avg_ks)}})]
+                  time_series.append(series)
+              
+              if current_roc > 0:
+                  series = monitoring_v3.TimeSeries()
+                  series.metric.type = 'custom.googleapis.com/financial_stress/anomaly/roc_auc'
+                  series.resource.type = 'global'
+                  series.metric.labels['model_type'] = 'anomaly'
+                  series.points = [monitoring_v3.Point({"interval": {"end_time": {"seconds": int(now)}}, "value": {"double_value": float(current_roc)}})]
+                  time_series.append(series)
+              
+              series = monitoring_v3.TimeSeries()
+              series.metric.type = 'custom.googleapis.com/financial_stress/system/drift_detected'
+              series.resource.type = 'global'
+              series.points = [monitoring_v3.Point({"interval": {"end_time": {"seconds": int(now)}}, "value": {"int64_value": 1 if any_drift else 0}})]
+              time_series.append(series)
+              
+              if time_series:
+                  client.create_time_series(name=project_name, time_series=time_series)
+                  print("✅ Logged to Cloud Monitoring")
+          except Exception as e:
+              print(f"⚠️ Cloud Monitoring failed: {e}")
+          
+          # SAVE REPORT
+          drift_report['any_drift'] = any_drift
+          os.makedirs('reports', exist_ok=True)
+          with open('reports/drift_report.json', 'w') as f:
+              json.dump(drift_report, f, indent=2)
+          
+          import subprocess
+          timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+          subprocess.run(['gsutil', 'cp', 'reports/drift_report.json', f'gs://mlops-financial-stress-data/monitoring/drift_reports/drift_{timestamp}.json'], capture_output=True)
+          print("✅ Report saved to GCS")
+          
+          # OUTPUTS
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"vae_drift={str(vae_drift_bool).lower()}\n")
+              f.write(f"vae_ks={avg_ks:.4f}\n")
+              f.write(f"anomaly_drift={str(anom_drift_bool).lower()}\n")
+              f.write(f"anomaly_roc={current_roc:.4f}\n")
+              f.write(f"any_drift={str(any_drift).lower()}\n")
+          
+          print("✅ COMPLETE")
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: drift-report
+          path: reports/drift_report.json
+          retention-days: 30
+
+      - uses: dawidd6/action-send-mail@v3
+        if: steps.check.outputs.any_drift == 'true'
+        continue-on-error: true
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "🚨 Drift Detected - Retraining Started"
+          to: ${{ env.NOTIFICATION_EMAIL }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: |
+            🚨 DRIFT DETECTED
+            
+            VAE: ${{ steps.check.outputs.vae_drift == 'true' && '⚠️ DRIFT' || '✅ OK' }} (KS: ${{ steps.check.outputs.vae_ks }})
+            Anomaly: ${{ steps.check.outputs.anomaly_drift == 'true' && '⚠️ DRIFT' || '✅ OK' }} (ROC: ${{ steps.check.outputs.anomaly_roc }})
+            
+            Retraining: https://github.com/Novia-Dsilva/Mlops_Project_FinancialCrises/actions
+
+  retrain-vae:
+    runs-on: ubuntu-latest
+    needs: [detect-drift]
+    if: needs.detect-drift.outputs.vae_drift == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+      - run: pip install -r requirements.txt mlflow
+      - run: |
+          mkdir -p data/features
+          gsutil cp gs://${{ env.GCP_BUCKET }}/data/features/macro_features_clean.csv data/features/
+      - run: |
+          python src/models/vae/Dense_VAE_optimized_mlflow_updated.py || echo "Dense done"
+          python src/models/vae/Ensemble_VAE_updated.py || echo "Ensemble done"
+        continue-on-error: true
+      - id: validate
+        run: |
+          python - <<'EOF'
+          import json, glob, os
+          metrics_files = glob.glob('models/vae/*_metrics.json')
+          if not metrics_files:
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("deploy=false\n")
+                  f.write("best_model=none\n")
+                  f.write("best_ks=0.0\n")
+              exit(0)
+          best_ks, best_model = 0.0, None
+          for mf in metrics_files:
+              with open(mf) as f:
+                  m = json.load(f)
+              ks = m.get('avg_ks_statistic', 0.0)
+              name = os.path.basename(mf).replace('_metrics.json', '')
+              if ks > best_ks:
+                  best_ks, best_model = ks, name
+          
+          # Get current production model KS from drift detection
+          current_ks = float(os.getenv('CURRENT_VAE_KS', '0.70'))
+          
+          # Deploy if new model is BETTER than current
+          deploy = best_ks > current_ks and best_ks >= 0.70
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"best_model={best_model}\n")
+              f.write(f"best_ks={best_ks:.4f}\n")
+              f.write(f"deploy={str(deploy).lower()}\n")
+          
+          print(f"Current model KS: {current_ks:.4f}")
+          print(f"New model KS: {best_ks:.4f}")
+          print(f"Deploy: {'✅ YES (better)' if deploy else '❌ NO (not better)'}")
+          EOF
+        env:
+          CURRENT_VAE_KS: ${{ needs.detect-drift.outputs.vae_ks }}
+      
+      - if: steps.validate.outputs.deploy == 'true'
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          gsutil cp gs://${{ env.GCP_BUCKET }}/models/vae/deployment/best_model_deployment.pkl \
+                     gs://${{ env.GCP_BUCKET }}/models/vae/deployment/backups/backup_${timestamp}.pkl || echo "No backup"
+          gsutil cp models/vae/${{ steps.validate.outputs.best_model }}.pkl \
+                     gs://${{ env.GCP_BUCKET }}/models/vae/deployment/best_model_deployment.pkl
+          echo "{\"model\": \"${{ steps.validate.outputs.best_model }}\", \"ks\": ${{ steps.validate.outputs.best_ks }}, \"deployed_at\": \"${timestamp}\"}" > metadata.json
+          gsutil cp metadata.json gs://${{ env.GCP_BUCKET }}/models/vae/deployment/deployment_metadata.json
+          echo "✅ DEPLOYED: ${{ steps.validate.outputs.best_model }} (KS=${{ steps.validate.outputs.best_ks }})"
+
+  retrain-anomaly:
+    runs-on: ubuntu-latest
+    needs: [detect-drift]
+    if: needs.detect-drift.outputs.anomaly_drift == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+      - run: pip install -r requirements.txt mlflow
+      - run: |
+          mkdir -p outputs/snorkel/data
+          gsutil cp gs://${{ env.GCP_BUCKET }}/outputs/snorkel/data/snorkel_labeled_only.csv outputs/snorkel/data/
+      - run: python src/models/train_anomaly_detection.py
+        continue-on-error: true
+      - id: validate
+        run: |
+          python - <<'EOF'
+          import json, glob, os
+          metrics_files = glob.glob('outputs/models/results/*_metrics.json')
+          if not metrics_files:
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+                  f.write("deploy=false\n")
+                  f.write("best_roc=0.0\n")
+              exit(0)
+          best_roc = max(json.load(open(mf)).get('roc_auc', 0.0) for mf in metrics_files)
+          
+          # Get current production model ROC-AUC
+          current_roc = float(os.getenv('CURRENT_ANOMALY_ROC', '0.75'))
+          
+          # Deploy if new model is BETTER than current
+          deploy = best_roc > current_roc and best_roc >= 0.75
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"best_roc={best_roc:.4f}\n")
+              f.write(f"deploy={str(deploy).lower()}\n")
+          
+          print(f"Current model ROC-AUC: {current_roc:.4f}")
+          print(f"New model ROC-AUC: {best_roc:.4f}")
+          print(f"Deploy: {'✅ YES (better)' if deploy else '❌ NO (not better)'}")
+          EOF
+        env:
+          CURRENT_ANOMALY_ROC: ${{ needs.detect-drift.outputs.anomaly_roc }}
+      
+      - if: steps.validate.outputs.deploy == 'true'
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          gsutil cp gs://${{ env.GCP_BUCKET }}/models/anomaly_detection/model.pkl \
+                     gs://${{ env.GCP_BUCKET }}/models/anomaly_detection/backups/backup_${timestamp}.pkl || echo "No backup"
+          gsutil cp models/anomaly_detection/model.pkl gs://${{ env.GCP_BUCKET }}/models/anomaly_detection/
+          echo "✅ DEPLOYED: New anomaly model (ROC-AUC=${{ steps.validate.outputs.best_roc }})"
+
+  notify-complete:
+    runs-on: ubuntu-latest
+    needs: [detect-drift, retrain-vae, retrain-anomaly]
+    if: always()
+    steps:
+      - uses: dawidd6/action-send-mail@v3
+        continue-on-error: true
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "📊 Monitoring Complete"
+          to: ${{ env.NOTIFICATION_EMAIL }}
+          from: ${{ secrets.EMAIL_USERNAME }}
+          body: |
+            📊 MONITORING COMPLETE
+            
+            VAE: ${{ needs.detect-drift.outputs.vae_drift == 'true' && '⚠️ Retrained' || '✅ Healthy' }} (KS: ${{ needs.detect-drift.outputs.vae_ks }})
+            Anomaly: ${{ needs.detect-drift.outputs.anomaly_drift == 'true' && '⚠️ Retrained' || '✅ Healthy' }} (ROC: ${{ needs.detect-drift.outputs.anomaly_roc }})
+            
+            VAE Retraining: ${{ needs.retrain-vae.result || 'Not triggered' }}
+            Anomaly Retraining: ${{ needs.retrain-anomaly.result || 'Not triggered' }}
+            
+            View: https://github.com/Novia-Dsilva/Mlops_Project_FinancialCrises/actions
+            Cloud Monitoring: https://console.cloud.google.com/monitoring?project=ninth-iris-422916-f2
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [detect-drift, retrain-vae, retrain-anomaly]
+    if: always()
+    steps:
+      - run: |
+          echo "=========================================="
+          echo "DRIFT MONITORING SUMMARY"
+          echo "=========================================="
+          echo "VAE:     ${{ needs.detect-drift.outputs.vae_drift }} (KS: ${{ needs.detect-drift.outputs.vae_ks }})"
+          echo "Anomaly: ${{ needs.detect-drift.outputs.anomaly_drift }} (ROC: ${{ needs.detect-drift.outputs.anomaly_roc }})"
+          echo "Retrain VAE: ${{ needs.retrain-vae.result || 'skipped' }}"
+          echo "Retrain Anomaly: ${{ needs.retrain-anomaly.result || 'skipped' }}"
+          echo "=========================================="

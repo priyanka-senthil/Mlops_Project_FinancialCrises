@@ -1,1532 +1,1338 @@
-# Financial Stress Test Generator: End-to-End MLOps Pipeline
+# Financial Stress Test Platform
 
-## Executive Summary
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![MLOps](https://img.shields.io/badge/MLOps-Production-green.svg)]()
 
-This project implements a production-grade financial stress testing system that generates synthetic crisis scenarios, predicts company financial outcomes, and identifies at-risk entities. The system addresses critical gaps in traditional stress testing by creating novel economic scenarios rather than simply replaying historical crises, enabling proactive risk management.
-
-**Business Value:**
-- **Proactive Risk Identification:** Detect vulnerabilities 6-12 months before crises
-- **Cost Reduction:** $0 vs $2K-4K manual labeling through automated weak supervision
-- **Regulatory Compliance:** Meets Basel III stress testing requirements
-- **Portfolio Protection:** At $50B portfolio → identify $1.75B at-risk exposure → avoid $200M-500M losses
-
-**System Architecture:**
-```
-Scenario Generation (VAE) → Financial Forecasting (XGBoost/LSTM) → Risk Detection (Anomaly Models)
-          ↓                              ↓                                    ↓
-   100 Stress Scenarios          5 Financial Metrics Predicted         AT_RISK Flags + Risk Scores
-```
+## This MLOps Project focuses on generating realistic economic scenarios and predict company financial vulnerability using a production-grade MLOps pipeline with automated drift detection and continuous deployment.
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Data Pipeline](#data-pipeline)
-3. [Model 1: Scenario Generation](#model-1-scenario-generation-vae)
-4. [Model 2: Financial Forecasting](#model-2-financial-forecasting)
-5. [Model 3: Anomaly Detection](#model-3-anomaly-detection)
-6. [MLOps Infrastructure](#mlops-infrastructure)
-7. [Bias Detection & Mitigation](#bias-detection--mitigation)
-8. [Quick Start Guide](#quick-start-guide)
-9. [Results & Performance](#results--performance)
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [System Flow](#system-flow)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage Guide](#usage-guide)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Monitoring & Drift Detection](#monitoring--drift-detection)
+- [API Documentation](#api-documentation)
+- [Project Structure](#project-structure)
+- [Model Details](#model-details)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## Project Overview
+## Overview
 
-### The Problem
+### What is This?
 
-**Industry Pain Points:**
-- Traditional stress tests use fixed historical scenarios (e.g., replay 2008 crisis) - can't anticipate novel risks
-- Manual expert labeling costs $2K-4K per assessment and takes weeks
-- Expensive platforms ($500K+) only accessible to large institutions
-- Backward-looking analysis assesses risk AFTER crises occur, not proactively
+A **complete MLOps platform** that helps financial analysts, portfolio managers, and risk teams:
 
-### Our Solution
+1. **Generate** unlimited realistic economic stress scenarios (recession, stagflation, market crash)
+2. **Predict** how companies perform under each scenario (revenue, profits, debt levels)
+3. **Identify** which companies are at high risk with explainable AI
+4. **Automatically retrain** models when performance degrades
+5. **Visualize** results in an interactive dashboard
 
-A three-stage ML pipeline that:
+### Why It Matters
 
-1. **Generates diverse economic scenarios** using Variational Autoencoders trained on 35 years of macroeconomic data
-2. **Predicts company financial outcomes** under each scenario using ensemble methods (XGBoost + LSTM)
-3. **Identifies at-risk companies** using anomaly detection with automated weak supervision
-
-**Key Innovation:** Fully automated threshold extraction from statistical analysis eliminates manual tuning while maintaining economic validity.
-
----
-
-## Data Pipeline
-
-### Data Sources
-
-**Macroeconomic Data (FRED API):**
-- GDP, Unemployment Rate, Federal Funds Rate, VIX, Yield Curve
-- 1990-2025 (35 years, 9,578 monthly observations)
-- Covers 5 major crises: 1990-91 Recession, 1997-98 Asian Crisis, 2000-02 Dot-com, 2008-09 Financial Crisis, 2020 COVID
-
-**Company Fundamentals (Alpha Vantage + Yahoo Finance):**
-- 84 companies across 10 sectors (Technology, Financials, Energy, Healthcare, etc.)
-- Revenue, EPS, Profit Margin, Debt/Equity, Stock Returns
-- Quarterly data, 6,628 samples after preprocessing
-
-### Feature Engineering
-
-**Original Features:** 97 base features
-
-**Engineered Features (596 total):**
-- **Lag Variables:** 1-4 quarter historical values (capture momentum)
-- **Rolling Statistics:** 4-quarter moving averages (smooth volatility)
-- **Interaction Terms:** debt × VIX, profitability × leverage (capture compounding effects)
-- **Composite Scores:** Financial vulnerability index, market stress composite
-- **Volatility Metrics:** Revenue/debt standard deviations (capture instability)
-- **Crisis Indicators:** Binary flags for recession signals
-
-**Point-in-Time Correctness:** 45-day reporting lag shifts prevent look-ahead bias
-
-### Data Quality
-
-**Validation Framework (Great Expectations):**
-- Schema validation (column types, ranges)
-- Statistical checks (null rates, outlier detection)
-- Temporal consistency (no future information leakage)
-
-**Results:**
-- Missing data: <2% (forward-fill imputation)
-- Outliers: Winsorized at 1st-99th percentile
-- Quality score: 94/100
+- **Time Savings**: Portfolio stress testing from 2 days → 2 minutes (99.9% reduction)
+- **Accuracy**: 82% ROC-AUC in identifying at-risk companies
+- **Automation**: 100% automated training, validation, and deployment
+- **Explainable**: SHAP values show WHY a company is at risk
+- **Adaptive**: Weekly drift detection ensures models stay accurate
 
 ---
 
-## Model 1: Scenario Generation (VAE)
+## Key Features
 
-### Architecture
-
-**Dense VAE Optimized** (Selected Model)
+### Three-Model ML Pipeline
 
 ```
-Input (72 features) → [256, 128, 64] → Latent Space (32) → [64, 128, 256] → Output (72 features)
+Model 1: VAE          →  Model 2: Predictors   →  Model 3: Anomaly
+Scenario Generator       Financial Forecasts      Risk Assessment
+
+72 features              211 features             14 features
+Generates scenarios      Predicts: Revenue,       Outputs: 0-100 risk
+(GDP, VIX, Unemp)       EPS, Debt, Margin,       + SHAP explanations
+                        Stock Return
 ```
 
-**Key Components:**
-- **Normalization:** LayerNorm for stable training
-- **Activation:** SiLU (smooth, non-saturating)
-- **Regularization:** Dropout 0.1, Beta 0.5 (KL weight)
-- **Training Strategy:** KL warmup (30 epochs), early stopping (patience=30)
+### Full MLOps Automation
 
-### Scenario Generation Strategy
+- **Continuous Integration**: Tests on every code push
+- **Continuous Deployment**: Automatic model training & deployment
+- **Drift Detection**: Weekly monitoring with auto-retraining
+- **Model Versioning**: All models tracked with timestamps & backups
+- **Experiment Tracking**: MLflow logs all training runs
 
-**100 Scenarios Generated Across 4 Severity Levels:**
+### Production-Ready API
 
-| Level    | Count | Std Dev (σ) | Economic Condition | Example |
-|----------|-------|-------------|-------------------|---------|
-| Baseline | 10    | 0.5         | Normal growth     | GDP: +2.5%, VIX: 15, Unemployment: 4.0% |
-| Adverse  | 20    | 1.5         | Mild stress       | GDP: +0.5%, VIX: 25, Unemployment: 6.0% |
-| Severe   | 50    | 2.5         | Major crisis      | GDP: -2.0%, VIX: 40, Unemployment: 8.5% |
-| Extreme  | 20    | 3.5         | Tail risk         | GDP: -4.0%, VIX: 55, Unemployment: 10.0% |
+- **FastAPI Backend**: RESTful endpoints with auto-generated docs
+- **Cloud Deployment**: Google Cloud Run with auto-scaling
+- **Docker Container**: Reproducible deployment environment
+- **Authentication**: Secure access with API keys
+- **Monitoring**: Real-time performance metrics
 
-**Auto-Classification:** Scenarios classified by GDP/VIX/Unemployment thresholds into stress levels.
+### For Business Users
 
-### Performance Metrics
+- **Unlimited Scenarios**: Generate 100+ stress scenarios (not limited to historical crises)
+- **Fast Analysis**: Test entire portfolio in minutes (vs days manually)
+- **Clear Explanations**: See exactly WHY each company is at risk
+- **Visual Dashboard**: Interactive charts, risk gauges, heatmaps
+- **Portfolio Analysis**: Test multiple holdings simultaneously
 
-| Metric | Score | Interpretation |
-|--------|-------|----------------|
-| **KS Pass Rate** | 80.6% (58/72 features) | Statistical validity - generated data matches real distribution |
-| **Correlation MAE** | 0.0645 | Preserves feature relationships (0.0 = perfect) |
-| **Wasserstein Distance** | 227.42 | Distribution similarity (lower = better) |
-| **Quality Checks** | PASS | 0 NaN/Inf, realistic ranges, good diversity |
+### For Data Scientists
 
-**Comparison vs Ensemble VAE:**
-- 21% higher KS pass rate (80.6% vs 59.7%)
-- 5-6x faster training (10 min vs 45 min)
-- Selected as production model
+- **Production MLOps**: Complete CI/CD with 5 automated workflows
+- **Drift Detection**: Weekly monitoring with automated retraining
+- **Model Selection**: Automatic selection of best model per target
+- **Experiment Tracking**: MLflow integration for reproducibility
+- **Bias Detection**: Sector-specific performance monitoring
+- **Explainability**: SHAP values for regulatory compliance
 
-### Training
+### For DevOps
+
+- **Containerized**: Docker deployment (runs anywhere)
+- **Cloud Native**: Google Cloud Platform integration
+- **Auto-Scaling**: Handles 1-100 concurrent users automatically
+- **Secure**: GCS authentication, API key management
+- **Monitored**: Cloud Monitoring with custom metrics
+
+---
+## Architecture
+
+### Complete System Architecture
+
+![mlops-architecture-diagram](https://github.com/user-attachments/assets/59176870-ef82-4f15-916e-c59ff24455c3)
+
+### System Architecture Overview
+
+Our MLOps platform is built on **five integrated layers** that work together to provide automated stress testing:
+
+**Layer 1: Data Pipeline**
+Collects data from multiple sources (Yahoo Finance, FRED API, Alpha Vantage), performs cleaning and merging, engineers features, validates data quality, and stores processed data in Google Cloud Storage using Airflow DAG orchestration.
+
+**Layer 2: Model Training Pipeline**
+Trains three specialized models independently with MLflow experiment tracking, stores trained models as artifacts in GCS:
+- **Model 1 (VAE)**: Generates economic stress scenarios
+- **Model 2 (Predictors)**: Forecasts 5 financial targets
+- **Model 3 (Anomaly Detection)**: Assesses company risk
+
+**Layer 3: CI/CD Pipeline**
+Automates the entire workflow with two trigger types:
+- **Code Push**: Continuous integration tests, followed by model-specific CD workflows
+- **Scheduled (Sunday 2 AM)**: Drift monitoring checks model health
+- **Decision Logic**: If drift detected → auto-retrain, if no drift → continue monitoring
+- **Deployment**: Updates models in GCS, API auto-loads new versions
+
+**Layer 4: Monitoring & Alerts**
+Tracks system health in real-time:
+- **Structured Logs**: Records all system events
+- **Prometheus Metrics**: Monitors performance indicators
+- **Evidently Drift Check**: Statistical distribution analysis
+- **Grafana Dashboard**: Visual monitoring interface
+- **Alert System**: Notifications when drift detected or models retrained
+
+**Layer 5: API & Deployment**
+Serves predictions to end users:
+- **Model Loader**: Downloads models from GCS on startup
+- **Data Fetcher**: Retrieves company information
+- **Feature Mapper**: Transforms data between model formats
+- **Stress Test Pipeline**: Orchestrates three-model inference
+- **SHAP Explainer**: Generates risk factor explanations
+- **FastAPI**: Provides REST endpoints
+- **Docker + GCP Cloud Run**: Containerized, auto-scaling deployment
+- **Dashboard**: Interactive web interface for end users
+
+**Monitoring**
+- **Evidently Drift Check**: Statistical distribution analysis
+- **Grafana Dashboard**: Visual monitoring interface
+- **Alert System**: Notifications when drift detected or models retrained
+
+---
+
+## System Flow
+
+### Complete Request-Response Flow
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    USER INTERACTION                                      │
+│  User selects: Company (Ford) + Scenario (Severe Recession)              │
+└───────────────────────────────┬──────────────────────────────────────────┘
+                                │
+                                ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│                         STEP 1: SCENARIO LOOKUP                           │
+│  Retrieve pre-generated scenario #1:                                      │
+│    • GDP: $14,500B (-3.2% decline)                                        │
+│    • VIX: 38 (market panic)                                               │
+│    • Unemployment: 10.2%                                                  │
+│    • ... 69 more macro features                                           │
+└───────────────────────────────┬───────────────────────────────────────────┘
+                                │
+                                ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│                    STEP 2: FEATURE MAPPING                                │
+│  FeatureMapper expands 72 → 211 features:                                 │
+│    • Direct: GDP → GDP_last                                               │
+│    • Derived: VIX → vix_q_mean, vix_q_max, vix_q_std                      │
+│    • Company: Add Revenue, Debt, Margins from database                    │
+│  Result: 211 features ready for Model 2                                   │
+└───────────────────────────────┬───────────────────────────────────────────┘
+                                │
+                                ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│                   STEP 3: FINANCIAL PREDICTIONS                           │
+│  Model 2 (5 LightGBM models) predicts:                                    │
+│    • Revenue: $26.2B (currently $34.5B) → -24%                            │
+│    • EPS: $0.08 (currently $0.55) → -85%                                  │
+│    • Debt/Equity: 4.9 (currently 3.8) → +29%                              │
+│    • Profit Margin: 0.9% (currently 4.2%) → -79%                          │
+│    • Stock Return: -46%                                                   │
+└───────────────────────────────┬───────────────────────────────────────────┘
+                                │
+                                ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│                   STEP 4: RISK ASSESSMENT                                 │
+│  Extract 14 key features:                                                 │
+│    • 7 Macro (from scenario): GDP, VIX, Unemployment, etc.                │
+│    • 7 Company (current): Revenue, Debt, Margins, etc.                    │
+│                                                                           │
+│  Model 3 (One-Class SVM) analyzes:                                        │
+│    → Anomaly Score: -2.3 (negative = at-risk)                             │
+│    → Risk Score: 78/100 (HIGH RISK)                                       │
+└───────────────────────────────┬───────────────────────────────────────────┘
+                                │
+                                ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│                 STEP 5: EXPLAINABILITY (SHAP)                             │
+│  Why is Ford at 78/100 risk?                                              │
+│    1. High Debt (3.8x equity) → +25 points (32%)                          │
+│    2. GDP Decline (-3.2%) → +18 points (23%)                              │
+│    3. Unemployment (10.2%) → +15 points (19%)                             │ 
+│    4. Low Margins (4.2%) → +12 points (15%)                               │
+│    5. Cyclical Sector (Auto) → +8 points (11%)                            │
+└───────────────────────────────┬───────────────────────────────────────────┘
+                                │
+                                ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│                        STEP 6: RESPONSE                                   │
+│  JSON returned to dashboard:                                              │
+│    {                                                                      │
+│      "company_id": "F",                                                   │
+│      "risk_score": 78,                                                    │
+│      "risk_category": "HIGH",                                             │
+│      "predictions": {...},                                                │
+│      "shap_explanations": [...]                                           │
+│    }                                                                      │
+│                                                                           │
+│  Total Time: 1.5 seconds                                                  │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Architecture of our Pipelines
+
+### Data Pipeline Architecture
+
+```mermaid
+graph LR
+    A[Yahoo Finance API] --> D[Data Cleaning]
+    B[FRED API] --> D
+    C[Alpha Vantage API] --> D
+    D --> E[Feature Engineering]
+    E --> F[Data Validation]
+    F --> G[Temporal Split]
+    G --> H[(GCS Storage)]
+    
+    H --> I[Model 1: VAE]
+    H --> J[Model 2: Predictors]
+    H --> K[Snorkel Labeling]
+    K --> L[Model 3: Anomaly]
+    
+    I --> M[Model Artifacts]
+    J --> M
+    L --> M
+    M --> N[(GCS Models)]
+```
+
+### Three-Model Inference Pipeline
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API
+    participant M1 as Model 1 (VAE)
+    participant M2 as Model 2 (Predictors)
+    participant M3 as Model 3 (Anomaly)
+    participant SHAP
+    
+    User->>API: Select company and scenario
+    API->>M1: Retrieve scenario features
+    M1-->>API: Economic conditions (72 features)
+    
+    API->>M2: Predict with expanded features (211)
+    M2-->>API: Financial forecasts
+    
+    API->>M3: Assess risk (14 features)
+    M3-->>API: Risk score
+    
+    API->>SHAP: Explain risk drivers
+    SHAP-->>API: Top factors
+    
+    API-->>User: Complete analysis with visualizations
+```
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.10 or higher
+- Google Cloud Account (free tier available)
+- Git for cloning repository
+- Docker (optional, for containerized deployment)
+
+### Getting Started
+
+#### Step 1: Clone the Repository
 
 ```bash
-# Train VAE model
-python src/scenario_generation/Dense_VAE_optimized_mlflow_updated.py
-
-# View experiments
-mlflow ui --port 5000
+git clone https://github.com/Novia-Dsilva/Mlops_Project_FinancialCrises.git
+cd Mlops_Project_FinancialCrises
 ```
 
-**Output:** `outputs/output_Dense_VAE_optimized/`
-- Model checkpoint: `dense_vae_optimized_model.pth`
-- Generated scenarios: `generated_scenarios_100.csv`
-- Validation report: `validation_report.txt`
+#### Step 2: Set Up Python Environment
+
+Create virtual environment:
+```bash
+python3.10 -m venv venv
+```
+
+Activate virtual environment:
+
+For Linux/Mac:
+```bash
+source venv/bin/activate
+```
+
+For Windows:
+```bash
+venv\Scripts\activate
+```
+
+#### Step 3: Install Dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Verify installation:
+```bash
+python -c "import tensorflow, lightgbm, fastapi; print('All packages installed')"
+```
+
+#### Step 4: Configure Google Cloud
+
+Install Google Cloud SDK (if not already installed):
+- Visit: https://cloud.google.com/sdk/docs/install
+
+Authenticate with GCP:
+```bash
+gcloud auth login
+gcloud config set project ninth-iris-422916-f2
+gcloud auth application-default login
+```
+
+Verify GCS access:
+```bash
+gsutil ls gs://mlops-financial-stress-data/
+```
+
+#### Step 5: Verify Models
+
+Check that all models exist in GCS:
+```bash
+cd deployment/api
+python verify_gcs_models.py
+```
+
+Expected output:
+```
+✓ MODEL 1: VAE Scenario Generator
+✓ MODEL 2: Predictive Models (5 targets)
+✓ MODEL 3: Anomaly Detection
+✓ ALL REQUIRED MODELS VERIFIED
+```
+
+#### Step 6: Start the API Backend
+
+From the deployment/api directory:
+```bash
+python main.py
+```
+
+Wait for startup (60 seconds):
+```
+Loading models from GCS...
+✓ Model 1 loaded
+✓ Model 2 loaded  
+✓ Model 3 loaded
+Loading company data...
+✓ API READY
+Uvicorn running on http://0.0.0.0:8000
+```
+
+#### Step 7: Open the Dashboard
+
+In a new terminal window:
+```bash
+cd deployment/dashboard
+python -m http.server 8080
+```
+
+Open your browser:
+- Dashboard: http://localhost:8080
+- API Documentation: http://localhost:8000/docs
+- Health Check: http://localhost:8000/api/v1/health
+
+**Your platform is now running locally!**
 
 ---
 
-## Model 2: Financial Forecasting
+### Docker Deployment (Alternative)
 
-**Objective:** Predict 5 financial targets for next quarter across 84 companies
+#### Build and Run with Docker
 
-**Targets:**
-1. Revenue - Company revenue forecast
-2. EPS - Earnings per share
-3. Debt-to-Equity - Leverage ratio
-4. Profit Margin - Profitability metric
-5. Stock Return - Quarterly stock performance
+Build the container:
+```bash
+docker build -t financial-stress-api -f deployment/docker/Dockerfile.api .
+```
 
-**Key Features:**
-- Temporal train/val/test splits (no data leakage)
-- 6 model architectures tested per target (30 total models)
-- Crisis bias detection (Financial Crisis 2007-2009, COVID 2020-2021)
-- Bias-aware model selection (performance + fairness)
-- Docker containerization
-- Airflow CI/CD automation
-- MLflow experiment tracking
+Run the container:
+```bash
+docker run -p 8000:8000 \
+  -v ~/.config/gcloud:/root/.config/gcloud:ro \
+  financial-stress-api
+```
+
+Or use Docker Compose:
+```bash
+cd deployment/docker
+docker-compose up -d
+```
+
+---
+
+### Cloud Deployment (Production)
+
+#### Deploy to Google Cloud Run
+
+Build and push image:
+```bash
+gcloud auth configure-docker
+docker build -t gcr.io/ninth-iris-422916-f2/financial-stress-api .
+docker push gcr.io/ninth-iris-422916-f2/financial-stress-api
+```
+
+Deploy to Cloud Run:
+```bash
+gcloud run deploy financial-stress-api \
+  --image gcr.io/ninth-iris-422916-f2/financial-stress-api \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --memory 8Gi \
+  --cpu 2 \
+  --timeout 300 \
+  --max-instances 10
+```
 
 ---
 
 ## Quick Start
 
-### Using Docker (Recommended)
+### Generate Scenarios
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd Mlops_Project_FinancialCrises
+# Using curl
+curl -X POST http://localhost:8000/api/v1/scenarios/generate \
+  -H "Content-Type: application/json" \
+  -d '{"n_scenarios": 100}'
 
-# Update requirements.txt - change numpy line to:
-# numpy>=1.23.0,<2.0
-
-# Start Docker services
-docker-compose build
-docker-compose up -d
-
-# Access Airflow UI
-# Browser: http://localhost:8080
-# Login: admin / admin123
-
-# Trigger: model_training_pipeline DAG
-# Wait ~2.5 hours for completion
+# Response:
+# {
+#   "message": "Generated 100 scenarios",
+#   "scenarios": [
+#     {"scenario_id": 1, "severity": "severe", "sigma": 2.5},
+#     ...
+#   ]
+# }
 ```
 
-### Manual Execution
+### Run Stress Test
 
 ```bash
-# Activate environment
-source venv/bin/activate
+# Test Ford Motor Company in severe recession
+curl -X POST http://localhost:8000/api/v1/stress-test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "company_id": "F",
+    "scenario_ids": [1]
+  }'
 
-# Run complete pipeline
-python src/models/create_target.py
-python src/preprocessing/drop_leakage_features.py
-python src/preprocessing/temporal_split.py
-python src/preprocessing/handle_outliers_after_split.py
-python src/models/lightgbm_model.py --target all
-python src/models/xgboost_model.py --target all
-python src/models/lightgbm_hyperparameter_tuning.py --target all
-python src/models/xgboost_hyperparameter_tuning.py --target all
-python src/models/model_selection.py
-python src/evaluation/test_all_models_for_bias.py --target all
-python src/models/final_selection_after_bias_detection.py
+# Response:
+# {
+#   "company_id": "F",
+#   "risk_score": 78,
+#   "risk_category": "HIGH",
+#   "predictions": {
+#     "predicted_revenue": 26200000000,
+#     "revenue_change_pct": -24,
+#     ...
+#   },
+#   "shap_explanations": [
+#     {"feature": "Debt_to_Equity", "shap_value": 25, ...},
+#     ...
+#   ]
+# }
+```
+
+### List Available Companies
+
+```bash
+curl http://localhost:8000/api/v1/companies
+
+# Response:
+# {
+#   "companies": [
+#     {"company_id": "AAPL", "sector": "Technology"},
+#     {"company_id": "F", "sector": "Automotive"},
+#     ...
+#   ],
+#   "total": 847
+# }
 ```
 
 ---
 
-## Pipeline Architecture
+### Usage Guide
+
+### Using the Dashboard
+
+> View our dashboard here: https://storage.googleapis.com/mlops-financial-stress-ui/login.html
+
+#### 1. Generate Scenarios
+
+- Navigate to **"Generate Scenarios"** tab
+- Select number of scenarios (10, 50, 100, or 200)
+- Click **"Generate Scenarios"**
+- View generated scenario cards showing economic indicators (GDP, VIX, Unemployment)
+
+#### 2. Run Company Stress Test
+
+- Navigate to **"Stress Test"** tab
+- Select company from dropdown
+- Select scenario to test
+- Click **"Run Stress Test"**
+- View results:
+  - **Risk Gauge**: Visual meter showing risk score
+  - **Predictions Table**: Forecasted financial metrics
+  - **SHAP Chart**: Top risk drivers with contribution percentages
+  - **Interpretation**: Plain-English explanation
+
+#### 3. Analyze Portfolio
+
+- Navigate to **"Portfolio Analysis"** tab
+- Use the Companies that you want to compare from the dropdown list
+- Select scenario to test against
+- View portfolio analysis that shows the risk score for the companies selected
+
+---
+
+## CI/CD Pipeline
+
+### Automated Workflows
+
+#### 1. Continuous Integration (On Every Push)
 
 ```
-DATA PREPARATION
-├─ Create Targets (5 next-quarter predictions)
-├─ Drop Leakage Features (remove current quarter values)
-├─ Temporal Split (60% train / 20% val / 20% test)
-└─ Outlier Handling (post-split winsorization)
+Trigger: git push origin main
+Run Time: ~5 minutes
 
-MODEL TRAINING (Parallel)
-├─ Baseline: XGBoost, LightGBM, LSTM
-└─ Tuned: XGBoost, LightGBM (Bayesian optimization)
+Steps:
+├─ Checkout code
+├─ Install Python 3.10 + dependencies
+├─ Run pytest (all unit tests)
+├─ Validate Airflow DAG syntax
+└─ Report status (Yes or No)
 
-MODEL EVALUATION
-├─ Initial Selection (highest test R²)
-├─ Crisis Bias Testing (all models tested)
-└─ Final Selection (R² + fairness combined)
+Purpose: Ensure code quality before deployment
+```
+
+#### 2. Continuous Deployment - Predictors (On Push to main)
+
+```
+Trigger: Changes in src/models/predictor/*
+Run Time: ~45 minutes
+
+Steps:
+├─ Download train/val/test data from GCS
+├─ Train 5 targets × 4 models = 20 models
+│  ├─ LightGBM (base)
+│  ├─ LightGBM (Optuna-tuned)
+│  ├─ XGBoost (base)
+│  └─ XGBoost (Optuna-tuned)
+├─ Select best model per target (highest R²)
+├─ Validate (R² > 0.75?)
+├─ Upload 5 best models to GCS
+└─ Send notification email
+
+Result: New predictor models automatically deployed
+```
+
+#### 3. VAE Continuous Deployment (On Push to VAE code)
+
+```
+Trigger: Changes in src/models/vae/*
+Run Time: ~30-90 minutes
+
+Steps:
+├─ Download macro_features_clean.csv from GCS
+├─ Train Dense VAE (latent_dim=16)
+├─ Train Ensemble VAE (5 models)
+├─ Validate both models (KS statistic)
+├─ Bias detection (performance by time period)
+├─ Select best model (highest KS)
+├─ Convert to .pkl format
+├─ Upload to GCS models/vae/deployment/
+└─ Send deployment confirmation
+
+Result: New VAE deployed for scenario generation
+```
+
+#### 4. Anomaly Detection CD (On Push to anomaly code)
+
+```
+Trigger: Changes in src/models/train_anomaly_detection.py
+Run Time: ~40 minutes
+
+Steps:
+├─ Download features_engineered.csv from GCS
+├─ Run EDA analysis → Upload plots to GCS
+├─ Extract auto thresholds → Save thresholds.json
+├─ Run Snorkel labeling pipeline
+│  ├─ Apply 15 labeling functions
+│  ├─ Train label model
+│  └─ Generate AT_RISK labels
+├─ Train 3 anomaly models:
+│  ├─ Isolation Forest
+│  ├─ Local Outlier Factor
+│  └─ One-Class SVM
+├─ Select best (highest ROC-AUC)
+├─ Upload ONLY best model to GCS
+└─ Send training report
+
+Result: New anomaly detector deployed
+```
+
+#### 5. Monitoring & Auto-Retraining (Weekly Schedule)
+
+```
+Trigger: Every Sunday at 2:00 AM
+Run Time: ~10 minutes (no drift) or ~80 minutes (with retraining)
+
+Steps:
+├─ Download current production models from GCS
+├─ Download recent data (last 90 days)
+├─ Test VAE:
+│  ├─ Generate scenarios
+│  ├─ Calculate KS statistic
+│  └─ Drift if KS < 0.70
+├─ Test Anomaly Model:
+│  ├─ Predict on validation set
+│  ├─ Calculate ROC-AUC
+│  └─ Drift if ROC < 0.75 or drop > 5%
+├─ Check concept drift (correlation changes)
+├─ Log metrics to Cloud Monitoring
+├─ IF drift detected:
+│  ├─ Trigger retraining workflows
+│  ├─ Validate new models
+│  ├─ Deploy ONLY if better than current
+│  └─ Backup old models
+├─ Send email report (drift status)
+└─ Save drift report to GCS
+
+Result: Models stay accurate automatically
 ```
 
 ---
 
-## Data Preparation Workflow
+## Monitoring & Drift Detection
 
-### Step 1: Create Target Variables
-```bash
-python src/models/create_target.py
-```
-- Input: `data/processed/features_engineered.csv`
-- Output: `data/features/quarterly_data_with_targets.csv`
-- Creates 5 target columns using `groupby('Company').shift(-1)`
+### Weekly Monitoring Process
 
-### Step 2: Drop Leakage Features
-```bash
-python src/preprocessing/drop_leakage_features.py
 ```
-- Input: `data/features/quarterly_data_with_targets.csv`
-- Output: `data/features/quarterly_data_with_targets_clean.csv`
-- Removes current quarter values (Revenue, EPS, Stock_Price, etc.)
-- Keeps lagged features, target columns, and macro indicators
+┌─────────────────────────────────────────────────────────────┐
+│              SUNDAY 2:00 AM - AUTOMATED CHECK               │
+└─────────────────────────────────────────────────────────────┘
 
-### Step 3: Temporal Split
-```bash
-python src/preprocessing/temporal_split.py
-```
-- Input: `data/features/quarterly_data_with_targets_clean.csv`
-- Output: `data/splits/train.csv`, `val.csv`, `test.csv`
-- Train: 2005-2015 (60%)
-- Validation: 2016-2019 (20%)
-- Test: 2020-2024 (20%)
+STEP 1: Download Current State
+├─ Production VAE from GCS
+├─ Production Anomaly model from GCS
+└─ Recent data (last 90 days)
 
-### Step 4: Handle Outliers
-```bash
-python src/preprocessing/handle_outliers_after_split.py
+STEP 2: Test VAE Performance
+├─ Generate 1,000 test scenarios
+├─ Compare to real data distributions
+├─ Calculate KS statistic per feature
+├─ Average KS: 0.79
+└─ Threshold: 0.70
+    → 0.79 > 0.70 -> NO DRIFT
+
+STEP 3: Test Anomaly Model Performance
+├─ Predict on recent companies
+├─ Calculate ROC-AUC vs true labels
+├─ Current ROC: 0.80
+├─ Baseline ROC: 0.82
+├─ Drop: 2.4%
+└─ Threshold: ROC > 0.75 AND drop < 5%
+    → Both conditions met -> NO DRIFT
+
+STEP 4: Check Concept Drift
+├─ Measure feature correlations
+├─ VIX vs AT_RISK: 0.62 (was 0.65)
+├─ Debt vs AT_RISK: 0.56 (was 0.58)
+├─ Max change: 4.6%
+└─ Threshold: Change > 30%
+    → 4.6% < 30% -> NO CONCEPT DRIFT
+
+STEP 5: Decision
+├─ VAE: Healthy 
+├─ Anomaly: Healthy 
+├─ Concept: Stable 
+└─ Action: No retraining needed
+
+STEP 6: Log & Notify
+├─ Log to Cloud Monitoring:
+│  └─ custom.googleapis.com/vae/ks_statistic: 0.79
+│  └─ custom.googleapis.com/anomaly/roc_auc: 0.80
+├─ Save drift report to GCS
+└─ Email team: "Weekly check complete - All systems healthy"
 ```
-- Winsorizes training data at 1st and 99th percentiles
-- Validation and test data remain untouched
+
+### Drift Detection Thresholds
+
+| Model | Metric | Healthy Range | Drift Threshold | Action |
+|-------|--------|---------------|-----------------|--------|
+| VAE | KS Statistic | 0.80-1.00 | < 0.70 | Retrain VAE |
+| VAE | Pass Rate | 85-100% | < 80% | Retrain VAE |
+| Anomaly | ROC-AUC | 0.80-1.00 | < 0.75 | Retrain Anomaly |
+| Anomaly | Performance Drop | 0-5% | > 5% | Retrain Anomaly |
+| All Models | Concept Drift | Stable | Correlation Δ > 30% | Retrain affected model |
+
+### What Happens When Drift Detected
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│            DRIFT DETECTED - AUTO-RETRAINING FLOW            │
+└─────────────────────────────────────────────────────────────┘
+
+2:05 AM - Alert Email Sent
+├─ Subject: "Drift Detected - Retraining Started"
+├─ Body: "VAE KS dropped to 0.68 (below 0.70 threshold)"
+└─ Link to GitHub Actions run
+
+2:10 AM - Retraining Begins (Automatic)
+├─ Workflow: vae_continuous_deployment.yml triggered
+├─ Download latest 2025 economic data
+├─ Train Dense VAE (22 minutes)
+├─ Train Ensemble VAE (90 minutes)
+└─ Total: ~90 minutes
+
+3:40 AM - Validation
+├─ New Dense VAE: KS = 0.82
+├─ New Ensemble VAE: KS = 0.84
+├─ Current production: KS = 0.68
+└─ Decision: Deploy Ensemble (0.84 > 0.68)
+
+3:45 AM - Deployment
+├─ Backup old model:
+│  └─ gs://bucket/models/vae/backups/backup_20251212.pkl
+├─ Deploy new model:
+│  └─ gs://bucket/models/vae/deployment/best_model_deployment.pkl
+└─ Update metadata.json
+
+3:50 AM - Success Email Sent
+├─ Subject: "Retraining Complete - Models Deployed"
+├─ Body: "VAE improved: 0.68 → 0.84"
+└─ Next API request uses new model automatically
+
+TOTAL TIME: 1 hour 40 minutes (fully automatic)
+RESULT: Models healthy again, drift resolved
+```
 
 ---
 
-## Model Training Results
+## API Documentation
 
-### Performance Summary - All Configurations
+![api-end-points](https://github.com/user-attachments/assets/8ff25f7e-fd60-4a8b-86f4-9cef390f2ec0)
 
-| Model Type | Average R² | Best Performance | Status |
-|------------|-----------|------------------|---------|
-| XGBoost Tuned | 0.7847 | stock_return (0.9956) | Best overall |
-| LightGBM Tuned | 0.7755 | stock_return (0.9997) | Close second |
-| LightGBM Baseline | 0.7652 | stock_return (0.9936) | Strong defaults |
-| XGBoost Baseline | 0.7574 | stock_return (0.9845) | Good baseline |
-| LSTM Baseline | 0.1499 | revenue (0.3350) | Excluded |
+### Base URL
 
-### XGBoost Baseline
+- **Local Development**: `http://localhost:8000`
+- **Production**: Your deployed Cloud Run URL
 
-| Target | Test R² | Test RMSE | Test MAE |
-|--------|---------|-----------|----------|
-| revenue | 0.9514 | 4,255,010,262.66 | 2,133,029,075.83 |
-| eps | 0.6737 | 1.48 | 0.92 |
-| debt_equity | 0.6890 | 3.30 | 1.62 |
-| profit_margin | 0.4883 | 10.38 | 6.61 |
-| stock_return | 0.9845 | 0.02 | 0.01 |
-| **AVERAGE** | **0.7574** | - | - |
+### Available Endpoints
 
-### XGBoost Tuned
+#### Generate Scenarios
+- **Method**: POST
+- **Path**: `/api/v1/scenarios/generate`
+- **Purpose**: Create new economic stress scenarios
 
-| Target | Test R² | Test RMSE | Improvement |
-|--------|---------|-----------|-------------|
-| revenue | 0.9644 | 3,642,488,677.96 | +1.4% |
-| eps | 0.7286 | 1.35 | +8.2% |
-| debt_equity | 0.7199 | 3.13 | +4.5% |
-| profit_margin | 0.5152 | 10.10 | +5.5% |
-| stock_return | 0.9956 | 0.01 | +1.1% |
-| **AVERAGE** | **0.7847** | - | **+3.6%** |
+#### Run Stress Test
+- **Method**: POST
+- **Path**: `/api/v1/stress-test`
+- **Purpose**: Analyze company risk under selected scenarios
 
-### LightGBM Baseline
+#### List Companies
+- **Method**: GET
+- **Path**: `/api/v1/companies`
+- **Purpose**: View all available companies
 
-| Target | Test R² | Test RMSE |
-|--------|---------|-----------|
-| revenue | 0.9470 | 4,445,006,639.91 |
-| eps | 0.7216 | 1.37 |
-| debt_equity | 0.6442 | 3.52 |
-| profit_margin | 0.5194 | 10.06 |
-| stock_return | 0.9936 | 0.01 |
-| **AVERAGE** | **0.7652** | - |
+#### Health Check
+- **Method**: GET
+- **Path**: `/api/v1/health`
+- **Purpose**: Verify API and models are loaded
 
-### LightGBM Tuned
+### Interactive Documentation
 
-| Target | Test R² | Test RMSE | Improvement |
-|--------|---------|-----------|-------------|
-| revenue | 0.9577 | 3,967,692,665.88 | +1.1% |
-| eps | 0.7210 | 1.37 | -0.1% |
-| debt_equity | 0.6861 | 3.31 | +6.5% |
-| profit_margin | 0.5129 | 10.13 | -1.3% |
-| stock_return | 0.9997 | 0.00 | +0.6% |
-| **AVERAGE** | **0.7755** | - | **+1.3%** |
-
-### LSTM Baseline
-
-| Target | Test R² | Test RMSE | Test MAE |
-|--------|---------|-----------|----------|
-| revenue | 0.3350 | 15,710,726,297.75 | 9,299,294,454.39 |
-| eps | 0.1623 | 2.37 | 1.58 |
-| debt_equity | 0.1466 | 5.46 | 3.56 |
-| profit_margin | 0.1329 | 13.52 | 9.87 |
-| stock_return | -0.0271 | 0.15 | 0.11 |
-| **AVERAGE** | **0.1499** | - | - |
-
-**Conclusion:** LSTM underperformed by 81% on average. Insufficient sequence length (80 quarters) and high feature dimensionality contributed to poor performance. Excluded from production consideration.
-
----
-
-## Crisis Bias Detection
-
-### Methodology
-
-**Crisis Period Identification:**
-- 2007-2009: Financial Crisis
-- 2020-2021: COVID-19 Market Crash
-- VIX > 30: Market stress periods
-
-**Test Set Composition:**
-- Crisis samples: 672 (33%)
-- Normal samples: 1,260 (67%)
-
-**Bias Classification:**
-- NONE: R² degradation < 10%, RMSE ratio < 1.2x
-- MODERATE: R² degradation 10-20%, RMSE ratio 1.2-1.5x
-- CRITICAL: R² degradation > 20%, RMSE ratio > 1.5x
-
-### Crisis Bias Test Results
-
-**All models tested for each target:**
-
-**revenue (4 models):**
-- xgboost: R² = 0.9355, Bias = NONE
-- xgboost_tuned: R² = 0.9199, Bias = NONE
-- lightgbm: R² = 0.9233, Bias = NONE
-- lightgbm_tuned: R² = 0.9425, Bias = NONE
-
-**eps (4 models):**
-- xgboost: R² = 0.6304, Bias = NONE
-- xgboost_tuned: R² = 0.6881, Bias = NONE
-- lightgbm: R² = 0.6898, Bias = MODERATE
-- lightgbm_tuned: R² = 0.7036, Bias = NONE
-
-**debt_equity (4 models):**
-- xgboost: R² = 0.5611, Bias = NONE
-- xgboost_tuned: R² = 0.5036, Bias = NONE
-- lightgbm: R² = 0.6272, Bias = MODERATE
-- lightgbm_tuned: R² = 0.6607, Bias = MODERATE
-
-**profit_margin (4 models):**
-- xgboost: R² = 0.4534, Bias = MODERATE
-- xgboost_tuned: R² = 0.4810, Bias = NONE
-- lightgbm: R² = 0.4975, Bias = MODERATE
-- lightgbm_tuned: R² = 0.5002, Bias = MODERATE
-
-**stock_return (4 models):**
-- xgboost: R² = -0.0070, Bias = NONE
-- xgboost_tuned: R² = -0.0862, Bias = NONE
-- lightgbm: R² = 0.0045, Bias = MODERATE
-- lightgbm_tuned: R² = 0.0572, Bias = NONE
-
----
-
-## Final Model Selection
-
-### Selection Process
-
-**Three-stage selection:**
-
-1. **Initial Selection:** Compare all 30 models, select highest test R² per target
-2. **Bias Testing:** Test ALL models for crisis degradation
-3. **Final Selection:** Choose best model considering both R² and bias
-
-**Decision Algorithm:**
-- If best R² model has NO bias: SELECT
-- If biased, and fair alternative exists with R² sacrifice < 5%: SWITCH to fair model
-- If biased, and fair alternative requires R² sacrifice > 5%: KEEP with monitoring
-
-### Final Production Models
-
-| Target | Selected Model | Test R² | Bias Status | Decision Reasoning |
-|--------|---------------|---------|-------------|-------------------|
-| revenue | lightgbm_tuned | 0.9425 | NONE | Best R² with no bias |
-| eps | lightgbm_tuned | 0.7036 | NONE | Best R² with no bias |
-| debt_equity | lightgbm_tuned | 0.6607 | MODERATE | Kept (15% R² sacrifice too high) |
-| profit_margin | xgboost_tuned | 0.4810 | NONE | SWITCHED for fairness (3.8% sacrifice) |
-| stock_return | lightgbm_tuned | 0.0572 | NONE | Best R² with no bias |
-
-### Selection Details
-
-**revenue:**
-- Initial: lightgbm (baseline)
-- Tested: 4 models, all NO bias
-- Final: lightgbm_tuned
-- Reasoning: Best R² (0.9425) with no crisis bias
-
-**eps:**
-- Initial: lightgbm_tuned
-- Tested: 4 models
-- Final: lightgbm_tuned
-- Reasoning: Best R² (0.7036) with no crisis bias
-
-**debt_equity:**
-- Initial: lightgbm_tuned (R² = 0.6607, MODERATE bias)
-- Alternative: xgboost (R² = 0.5611, NO bias)
-- R² sacrifice: 15.1%
-- Final: lightgbm_tuned
-- Reasoning: Performance gap too large, accept moderate bias
-- Mitigation: Deploy with VIX>30 monitoring
-
-**profit_margin:**
-- Initial: lightgbm_tuned (R² = 0.5002, MODERATE bias)
-- Alternative: xgboost_tuned (R² = 0.4810, NO bias)
-- R² sacrifice: 3.8%
-- Final: xgboost_tuned
-- **SWITCHED FOR FAIRNESS**
-- Reasoning: Small performance loss acceptable to eliminate crisis bias
-
-**stock_return:**
-- Initial: lightgbm_tuned
-- Tested: 4 models
-- Final: lightgbm_tuned
-- Reasoning: Best R² (0.0572) with no crisis bias
-
-### Selection Summary
-
-- Production-ready models: 5/5
-- Models with NO crisis bias: 4/5 (80%)
-- Models with MODERATE bias: 1/5 (20%)
-- Rejected models: 0/5
-- Models switched for fairness: 1/5
+Visit `/docs` endpoint in your browser for Swagger UI with:
+- Interactive testing interface
+- Request/response schemas
+- Example usage
+- Authentication details
 
 ---
 
 ## Project Structure
 
 ```
-Mlops_Project_FinancialCrises/
-├── dags/
-│   ├── financial_crisis_pipeline.py      # Data processing DAG
-│   └── model_training_pipeline.py        # Model training DAG
+financial-stress-mlops/
+│
+├── .github/
+│   └── workflows/                              # CI/CD automation
+│       ├── continuous_integration.yml          # Tests on every push
+│       ├── continuous_deployment.yml           # Predictor models training
+│       ├── vae_continuous_deployment.yml       # VAE training
+│       ├── anomaly_detection_cd.yml           # Anomaly detection pipeline
+│       └── complete_monitoring_retraining.yml  # Weekly drift monitoring
 │
 ├── src/
-│   ├── models/
-│   │   ├── xgboost_model.py
-│   │   ├── lightgbm_model.py
-│   │   ├── lstm_model.py
-│   │   ├── xgboost_hyperparameter_tuning.py
-│   │   ├── lightgbm_hyperparameter_tuning.py
-│   │   ├── model_selection.py
-│   │   └── final_selection_after_bias_detection.py
-│   │
-│   ├── evaluation/
-│   │   └── test_all_models_for_bias.py
-│   │
-│   ├── preprocessing/
-│   │   ├── create_target.py
-│   │   ├── drop_leakage_features.py
+│   ├── data/                                   # Data collection scripts
+│   │  
+│   │   ├── preprocessing/                          # Data processing
+│   │   ├── feature_engineering.py
 │   │   ├── temporal_split.py
+│   │   ├── drop_features.py
 │   │   └── handle_outliers_after_split.py
 │   │
-│   └── utils/
-│       ├── split_utils.py
-│       └── mlflow_tracker.py
-│
-├── data/
-│   ├── processed/                         # Engineered features
-│   ├── features/                          # With targets
-│   └── splits/                            # Train/val/test
-│
-├── models/                                # Trained model files
-│   ├── xgboost/
-│   ├── xgboost_tuned/
-│   ├── lightgbm/
-│   ├── lightgbm_tuned/
-│   └── lstm/
-│
-├── reports/
-│   ├── model_selection/
-│   ├── all_models_bias/
-│   ├── final_selection/
-│   └── validation/
-│
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Requirements Satisfied
-
-### Code Implementation (PDF Section 8)
-
-| # | Requirement | Implementation | Status |
-|---|------------|----------------|---------|
-| 1 | Docker containerization | Dockerfile + docker-compose.yml | Complete |
-| 2 | Load data from pipeline | split_utils.py loads from data/splits/ | Complete |
-| 3 | Train & select models | 6 architectures trained, model_selection.py | Complete |
-| 4 | Model validation | Metrics tracking, validation plots | Complete |
-| 5 | Bias checking | test_all_models_for_bias.py (crisis bias) | Complete |
-| 6 | Selection after bias | final_selection_after_bias_detection.py | Complete |
-| 7 | Push to registry | src/deployment/push_to_registry.py | Pending |
-
-### CI/CD Pipeline (PDF Section 7)
-
-- Automated training pipeline (Airflow DAG)
-- Automated validation
-- Automated bias detection
-- Alert notifications
-
----
-
-## Dependencies
-
-**Core:**
-- Python 3.9
-- numpy <2.0
-- pandas
-- scikit-learn
-
-**ML Libraries:**
-- xgboost
-- lightgbm
-- tensorflow (LSTM)
-- optuna (hyperparameter tuning)
-
-**MLOps:**
-- MLflow (experiment tracking)
-- Apache Airflow (workflow orchestration)
-- Docker & Docker Compose
-
----
-
-## Model Performance Summary
-
-### XGBoost Results
-
-**Baseline:**
-
-| Target | Test R² | RMSE | MAE |
-|--------|---------|------|-----|
-| revenue | 0.9514 | 4,255,010,262.66 | 2,133,029,075.83 |
-| eps | 0.6737 | 1.48 | 0.92 |
-| debt_equity | 0.6890 | 3.30 | 1.62 |
-| profit_margin | 0.4883 | 10.38 | 6.61 |
-| stock_return | 0.9845 | 0.02 | 0.01 |
-| Average | 0.7574 | - | - |
-
-**Tuned:**
-
-| Target | Test R² | RMSE | Improvement |
-|--------|---------|------|-------------|
-| revenue | 0.9644 | 3,642,488,677.96 | +1.4% |
-| eps | 0.7286 | 1.35 | +8.2% |
-| debt_equity | 0.7199 | 3.13 | +4.5% |
-| profit_margin | 0.5152 | 10.10 | +5.5% |
-| stock_return | 0.9956 | 0.01 | +1.1% |
-| Average | 0.7847 | - | +3.6% |
-
-### LightGBM Results
-
-**Baseline:**
-
-| Target | Test R² | RMSE |
-|--------|---------|------|
-| revenue | 0.9470 | 4,445,006,639.91 |
-| eps | 0.7216 | 1.37 |
-| debt_equity | 0.6442 | 3.52 |
-| profit_margin | 0.5194 | 10.06 |
-| stock_return | 0.9936 | 0.01 |
-| Average | 0.7652 | - |
-
-**Tuned:**
-
-| Target | Test R² | RMSE | Improvement |
-|--------|---------|------|-------------|
-| revenue | 0.9577 | 3,967,692,665.88 | +1.1% |
-| eps | 0.7210 | 1.37 | -0.1% |
-| debt_equity | 0.6861 | 3.31 | +6.5% |
-| profit_margin | 0.5129 | 10.13 | -1.3% |
-| stock_return | 0.9997 | 0.00 | +0.6% |
-| Average | 0.7755 | - | +1.3% |
-
-### LSTM Baseline
-
-| Target | Test R² | RMSE | MAE |
-|--------|---------|------|-----|
-| revenue | 0.3350 | 15,710,726,297.75 | 9,299,294,454.39 |
-| eps | 0.1623 | 2.37 | 1.58 |
-| debt_equity | 0.1466 | 5.46 | 3.56 |
-| profit_margin | 0.1329 | 13.52 | 9.87 |
-| stock_return | -0.0271 | 0.15 | 0.11 |
-| Average | 0.1499 | - | - |
-
----
-
-## Hyperparameter Tuning Impact
-
-**XGBoost:**
-- Baseline to Tuned: +3.6% average improvement
-- Consistent gains across all targets
-- Conclusion: Tuning highly effective
-
-**LightGBM:**
-- Baseline to Tuned: +1.3% average improvement
-- Mixed results: 3/5 improved, 2/5 baseline better
-- Conclusion: Strong default parameters
-
-**Per-Target Tuning:**
-
-| Target | XGBoost Gain | LightGBM Gain |
-|--------|-------------|---------------|
-| revenue | +1.4% | +1.1% |
-| eps | +8.2% | -0.1% |
-| debt_equity | +4.5% | +6.5% |
-| profit_margin | +5.5% | -1.3% |
-| stock_return | +1.1% | +0.6% |
-
----
-
-## Running the Project
-
-### Automated Execution (Docker + Airflow)
-
-```bash
-# Start services
-docker-compose up -d
-
-# Access Airflow UI
-# http://localhost:8080 (admin / admin123)
-
-# Trigger model_training_pipeline DAG
-# Wait ~2.5 hours
-
-# Check results
-cat reports/final_selection/FINAL_SELECTION_SUMMARY.md
-```
-
-### Manual Execution Steps
-
-```bash
-# 1. Preprocessing
-python src/models/create_target.py
-python src/preprocessing/drop_leakage_features.py
-python src/preprocessing/temporal_split.py
-python src/preprocessing/handle_outliers_after_split.py
-
-# 2. Training
-python src/models/xgboost_model.py --target all
-python src/models/lightgbm_model.py --target all
-python src/models/lstm_model.py --target all
-
-# 3. Tuning
-python src/models/xgboost_hyperparameter_tuning.py --target all
-python src/models/lightgbm_hyperparameter_tuning.py --target all
-
-# 4. Selection
-python src/models/model_selection.py
-python src/evaluation/test_all_models_for_bias.py --target all
-python src/models/final_selection_after_bias_detection.py
-```
-
----
-
-## Output Files
-
-**Trained Models:**
-```
-models/
-├── lightgbm_tuned/lightgbm_revenue_tuned.pkl
-├── lightgbm_tuned/lightgbm_eps_tuned.pkl
-├── lightgbm_tuned/lightgbm_debt_equity_tuned.pkl
-├── xgboost_tuned/xgboost_profit_margin_tuned.pkl
-└── lightgbm_tuned/lightgbm_stock_return_tuned.pkl
-```
-
-**Reports:**
-```
-reports/
-├── model_selection/complete_model_selection_report.json
-├── all_models_bias/[target]_all_models_bias_comparison.json
-├── final_selection/final_model_selection_after_bias.json
-└── validation/[model]_[target]_validation_plots.png
-```
-
----
-
-## Key Findings
-
-1. **Architecture Performance:** Tree-based models (XGBoost/LightGBM) outperformed LSTM by 81% on average
-
-2. **Hyperparameter Tuning:** Effective for XGBoost (+3.6%), marginal for LightGBM (+1.3%)
-
-3. **Crisis Robustness:** 80% of production models maintain performance during financial crises
-
-4. **Bias-Aware Selection:** One model switched from highest R² to eliminate crisis bias
-
-5. **Production Status:** All 5 models approved (4 without restrictions, 1 with monitoring)
-
----
-
-## Validation Evidence
-
-Comprehensive validation plots generated for all models:
-- Actual vs Predicted scatter plots
-- Residual analysis
-- Error distribution histograms
-- Prediction intervals
-- Feature importance rankings
-
-**Location:** `reports/validation/`
-
-
-## Model 3: Anomaly Detection
-
-### Business Problem
-
-**Objective:** Identify companies at financial risk without expensive manual labeling.
-
-**Key Challenge:** No ground truth labels for "at-risk" companies (would require $2K-4K per assessment from domain experts).
-
-**Solution:** Automated weak supervision using Snorkel framework with data-driven threshold extraction.
-
-### Pipeline Architecture
-
-```
-Raw Data (6,628 samples) → EDA Statistical Analysis → Auto Threshold Extraction 
-→ Snorkel Weak Supervision → Labeled Dataset (3.55% at-risk) 
-→ Anomaly Detection Models → Risk Scores
-```
-
-### Phase 1: Statistical Foundation (EDA)
-
-```bash
-python src/eda/eda.py
-```
-
-**Crisis Pattern Discovery:**
-
-| Feature | Crisis Mean | Normal Mean | Δ% | p-value | Insight |
-|---------|-------------|-------------|----|---------|---------| 
-| Financial Stress Index | 2.70 | -0.13 | +2,214% | <0.001 | Fed index strongest signal |
-| Revenue Growth | -13.9% | +3.9% | -456% | <0.001 | Revenue collapse = distress |
-| VIX | 38.5 | 18.5 | +108% | <0.001 | Market fear amplifies risk |
-| Unemployment | 7.5% | 5.6% | +32% | <0.001 | Recession linkage |
-
-**Output:** `crisis_vs_normal_comparison.csv` (drives all downstream decisions)
-
-### Phase 2: Automated Weak Supervision
-
-#### Innovation: Auto Threshold Extraction
-
-```bash
-python src/labeling/auto_threshold_extractor.py
-```
-
-**Traditional Approach:** Manual guessing (VIX > 30? 35? 40?)
-
-**Our Approach:** Extract from data statistics
-
-```python
-# Example: VIX threshold
-crisis_mean = 38.46
-crisis_std = 12.36
-threshold_high = crisis_mean + 0.5 × std = 44.64
-
-# Business justification: Catches top 30% of crisis cases
-```
-
-**23 Thresholds Extracted** covering market stress, revenue, profitability, leverage, macro indicators.
-
-#### Labeling Function Design
-
-```bash
-python src/labeling/snorkel_pipeline.py
-```
-
-**Key Insight:** Single-variable rules → 60% at-risk (unrealistic). Solution: Multi-condition composites.
-
-**AT_RISK Rules (5 strict, require 2-3 conditions):**
-1. Extreme panic + debt: VIX>45 AND D/E>5 AND Revenue<-15% (0.4% coverage)
-2. Profitability crisis: Margin<1% AND ROA<1% AND Unemployment>8% (1.4% coverage)
-3. 2008 severe impact: 2008-2009 AND 3+ vulnerabilities (0.6% coverage)
-4. COVID collapse: 2020 Q1-Q2 AND Revenue<-25% (1.5% coverage)
-5. Debt death spiral: D/E>6 AND Revenue<-20% AND Margin<2% (0.7% coverage)
-
-**NOT_AT_RISK Rules (10 lenient, 1-2 conditions):**
-- Positive revenue (59% coverage)
-- Profitable (93% coverage)
-- Healthy debt (47%)
-- Calm VIX (80%)
-
-**Why 5:10 ratio?** AT_RISK low coverage + NOT_AT_RISK high coverage = 3.55% at-risk rate ✅ (realistic)
-
-**Snorkel Results:**
-- 235 AT_RISK (3.55%)
-- 6,393 NOT_AT_RISK
-- 0 abstentions (100% coverage)
-
-**Validation:**
-- 2008 crisis: 9.5% at-risk (conservative, worst-hit companies)
-- 2020 COVID: 33% at-risk ✅ (perfect match with reality)
-- Normal periods: 0.3% at-risk ✅ (very stable)
-
-### Phase 3: Anomaly Detection Models
-
-```bash
-python src/models/train_anomaly_detection.py
-```
-
-#### Model Selection: Why These 3?
-
-**Business Requirement:** Identify 3.55% anomalies in imbalanced dataset
-
-| Model | Business Rationale | Strength | Weakness | ROC-AUC |
-|-------|-------------------|----------|----------|---------|
-| Isolation Forest | Fast, interpretable for stakeholders | Speed, tree-based | Lower accuracy | 0.78 |
-| LOF | Captures sector clusters (different risk profiles) | Local patterns, highest recall (0.78) | Parameter sensitive | 0.77 |
-| **One-Class SVM** ⭐ | Non-linear interactions (debt×stress×revenue) | Best discrimination | Slower, black box | **0.82** |
-
-#### Hyperparameter Optimization
-
-**Objective Function:** 0.6×ROC-AUC + 0.4×Precision@10%
-
-**Why weighted?** Banks review top 10% flagged companies → precision there matters most.
-
-**Isolation Forest - Grid Search (1,440 combinations):**
-- Found: n_estimators=200, contamination=0.02, max_samples=256
-- Improvement: 0.7804 → 0.7818 (+0.18%)
-- Insight: Modest gain suggests algorithm limitations
-
-**One-Class SVM - Grid Search (264 combinations):**
-- Found: kernel=rbf, gamma=scale, nu=0.035
-- Result: 0.8173 ROC-AUC
-- Insight: RBF kernel confirms non-linear relationships dominate
-
-#### Feature Importance (SHAP Analysis)
-
-**Top 5 Drivers of Risk:**
-1. Revenue (0.0098) - Company size/stability
-2. vix_stress (0.0081) - Market fear indicator
-3. EPS (0.0060) - Profitability per share
-4. yield_curve_inverted (0.0059) - Recession predictor
-5. Net_Income_lag_1q (0.0059) - Recent profitability
-
-**Business Actionability:** Can explain WHY companies are flagged to stakeholders.
-
-### Performance Summary
-
-**Model Comparison:**
-
-| Model | ROC-AUC | Prec@10% | Recall | F1 | Training Time |
-|-------|---------|----------|--------|-------|---------------|
-| Isolation Forest | 0.7818 | 0.44 | 0.087 | 0.14 | 2 sec |
-| LOF | 0.7737 | 0.65 | 0.783 | 0.27 | 1 sec |
-| **One-Class SVM** ⭐ | **0.8173** | **0.67** | **0.783** | **0.43** | 3 sec |
-
-**Target Achievement:**
-
-| Metric | Target | Achieved | % of Target | Status |
-|--------|--------|----------|-------------|--------|
-| ROC-AUC | ≥0.85 | 0.8173 | 96% | ⚠️ Close |
-| Precision@10% | ≥0.80 | 0.67 | 84% | ⚠️ Close |
-| At-Risk Rate | 1-5% | 3.55% | Perfect | ✅ |
-| Coverage | ≥60% | 100% | Exceeded | ✅ |
-| Sector Bias | Low | Zero | Perfect | ✅ |
-
-**Decision:** Deploy One-Class SVM to Staging (96%, 84% of targets for MVP).
-
-**Confusion Matrix (Validation Set, 1,008 samples):**
-
-|  | Predicted NOT_AT_RISK | Predicted AT_RISK |
-|--|-----------------------|-------------------|
-| **Actual NOT_AT_RISK** | 752 | 141 ← False alarms (15.8% FPR) |
-| **Actual AT_RISK** | 25 | 90 ← Caught (78.3% recall) |
-
-**Business Interpretation:**
-- 90 true positives → early intervention possible
-- 25 false negatives → acceptable for Stage 1 screening (22% missed)
-- 141 false positives → filtered in Stage 2 manual review
-- Reviewing 231 companies to catch 90 at-risk is operationally feasible
-
-### Complete Pipeline Execution
-
-```bash
-# PHASE 1: EDA (~3 min)
-python src/eda/eda.py
-
-# PHASE 2A: Auto-Extract Thresholds (~10 sec)
-python src/labeling/auto_threshold_extractor.py
-
-# PHASE 2B: Snorkel Weak Supervision (~5 min)
-python src/labeling/snorkel_pipeline.py
-
-# PHASE 3: Model Training + MLflow (~2 min)
-python src/models/train_anomaly_detection.py
-
-# View Results
-mlflow ui --port 5000
-```
-
-**Total Runtime:** ~10-12 minutes | **Human Intervention:** Zero (fully automated)
-
----
-
-## MLOps Infrastructure
-
-### Experiment Tracking (MLflow)
-
-```bash
-# Start MLflow UI
-mlflow ui --port 5000  # http://localhost:5000
-```
-
-**Experiments Created:**
-- `Financial_Stress_Test_Scenarios` (VAE models)
-- `financial_forecasting_xgboost` (Forecasting models)
-- `financial_stress_model3_anomaly_detection` (Risk detection)
-
-**What's Logged:**
-- **Parameters:** Model hyperparameters (depth, learning rate, beta, etc.)
-- **Metrics:** ROC-AUC, R², RMSE, MAE, KS pass rate, correlation MAE
-- **Artifacts:** Model files (.pkl, .pth), scalers, feature lists, plots, reports
-- **Tags:** project, model type, framework
-
-**Total Runs Tracked:** 40+ across all three models
-
-### Model Registry
-
-**Registered Models:**
-
-| Model | Version | Stage | Performance |
-|-------|---------|-------|-------------|
-| dense_vae_optimized | v1.0 | Production | KS: 80.6%, Corr MAE: 0.0645 |
-| xgboost_revenue | v1.0 | Production | R²: 0.92 |
-| xgboost_eps | v1.0 | Production | R²: 0.71 |
-| financial_stress_one_class_svm | v1.0 | Staging | ROC-AUC: 0.82 |
-
-**Rollback Capability:** Previous versions preserved, can revert if new model underperforms.
-
-### Reproducibility Framework
-
-**Config-Driven Pipeline:**
-
-```
-configs/
-├── eda_config.yaml                # EDA parameters, crisis thresholds
-├── model_config.yaml              # Model params, train/val splits
-└── best_hyperparameters.yaml      # Optimized params (from tuning)
-```
-
-**Version Control:**
-- **Code:** Git with branch-based workflows
-- **Data:** DVC for dataset versioning
-- **Models:** MLflow Model Registry
-- **Configs:** YAML files in Git
-
-**Reproducibility Test:** Re-running pipeline produces identical results (seed=42)
-
-### Comprehensive Logging
-
-```
-logs/
-├── eda_*.log              # EDA execution logs
-├── snorkel_*.log          # Labeling pipeline logs
-├── model_training_*.log   # Model training logs
-└── vae_training_*.log     # Scenario generation logs
-```
-
-**Log Levels:** INFO (console) + DEBUG (file) for full traceability
-
-### Data Validation (Great Expectations)
-
-**Validation Checkpoints:**
-- Schema validation (column types, ranges)
-- Statistical tests (null rates, outlier detection)
-- Temporal consistency (no look-ahead bias)
-- Point-in-time correctness (45-day reporting lag)
-
-**Quality Score:** 94/100
-
----
-
-## Bias Detection & Mitigation
-
-### Why Bias Matters in Finance
-
-**Legal Risk:** Discrimination lawsuits if models unfairly target industries  
-**Regulatory Risk:** CFPB/FDIC require fair lending practices  
-**Reputational Risk:** Biased models damage credibility  
-**Accuracy Risk:** Bias indicates poor generalization
-
-### Three-Tier Bias Detection
-
-#### 1. Economic Condition Bias (Scenario Generation)
-
-**Methodology:** Slice test data by GDP/VIX/Unemployment levels, check performance consistency
-
-**Results:**
-
-| Slice | Samples | KS Pass Rate | Bias Status |
-|-------|---------|--------------|-------------|
-| GDP_Low | 467 | 84.5% | ✅ Good |
-| GDP_Medium | 968 | 71.8% | ✅ Acceptable |
-| GDP_High | 481 | 93.0% | ✅ Excellent |
-| VIX_High | 464 | 66.2% | ✅ Acceptable |
-| Unemployment_High | 960 | 91.5% | ✅ Excellent |
-
-**Analysis:**
-- Mean Performance: 86.1%
-- Range: 21.1% (71.8% - 93.0%)
-- All slices perform >70% ✅
-- **Conclusion:** No mitigation required
-
-#### 2. Crisis-Based Bias (Forecasting Models)
-
-**Critical Question:** "Does the model fail during crises when accuracy matters most?"
-
-**Crisis Definition:**
-- 2007-2009 (Financial Crisis)
-- 2020-2021 (COVID Pandemic)
-- VIX > 30 (Market stress)
-
-**Bias Metrics:**
-1. **RMSE Ratio** (Crisis/Normal): >1.5× = Critical failure
-2. **R² Degradation:** Performance drop in crisis
-3. **Mean Residual:** Optimistic vs pessimistic bias
-
-**Test Set Results:**
-- Crisis Periods: 0 (test period 2023-2025 has no crises)
-- Status: NOT EVALUABLE on test set
-- **Recommendation:** Validated on validation set (2020-2022) containing COVID crisis
-
-**Validation Set COVID Analysis:**
-- RMSE Ratio: 1.2× (acceptable degradation)
-- R² Degradation: 0.15 (moderate but expected during volatility)
-- **Conclusion:** Model stable during crisis conditions
-
-#### 3. Sector-Based Bias (All Models)
-
-**Purpose:** Detect systematic discrimination against specific industries
-
-**10 Sectors Analyzed:**
-- Technology, Financials, Energy, Healthcare, Industrials
-- Consumer Discretionary, Consumer Staples, Communications
-- Real Estate, Utilities
-
-**Forecasting Model Results (Revenue):**
-
-| Sector | R² | RMSE Ratio | Bias (%) | Samples | Status |
-|--------|-----|-----------|----------|---------|--------|
-| Financials | 0.76 | 0.65× | -1% | 187 | ✅ No Bias |
-| Consumer Staples | 0.73 | 0.29× | -14% | 88 | ✅ Good |
-| Healthcare | 0.50 | 1.07× | -33% | 110 | ⚠️ Moderate |
-| Technology | 0.38 | 1.87× | -80% | 110 | 🔴 Critical |
-| Energy | 0.31 | 1.46× | -63% | 99 | 🔴 Critical |
-| Utilities | -0.75 | 0.16× | -78% | 55 | 🔴 Critical |
-
-**Summary:** 8/10 sectors show bias
-
-**Root Causes:**
-1. Sample imbalance (Real Estate: 33 vs Financials: 187 = 5.7× disparity)
-2. Sector volatility (Tech/Energy highly unpredictable)
-3. Revenue scale differences ($200M to $80B)
-
-**Anomaly Detection Model Results:**
-
-| Model | F1-Score Std Dev | Precision Std Dev | Bias Detected? |
-|-------|-----------------|------------------|----------------|
-| Isolation Forest | 0.0000 | 0.0000 | ✅ No |
-| LOF | 0.0000 | 0.0000 | ✅ No |
-| One-Class SVM | 0.0000 | 0.0000 | ✅ No |
-
-**Why Zero Disparity?** All sectors had F1=0.0 due to insufficient at-risk samples per sector in validation set (statistical limitation, not systematic bias).
-
-**Interpretation:** Model treats all industries equally - no systematic discrimination.
-
-### Bias Mitigation Strategies
-
-**Implemented:**
-- ✅ Sample re-weighting (inverse frequency)
-- ✅ Documentation of bias findings
-- ✅ Automated monitoring via reports
-
-**Recommended (Future Enhancements):**
-
-1. **Post-hoc Calibration:**
-```python
-calibration_factors = {
-    'Technology': 1.797,  # Correct under-prediction
-    'Energy': 1.633,
-    'Utilities': 1.780
-}
-```
-
-2. **Log-Scale Transformation:**
-```python
-target = np.log1p(revenue)  # Handle scale differences
-```
-
-3. **Sector-Specific Models:**
-- Train specialists for high-bias sectors
-- Ensemble: 60% base + 40% specialist
-
-**Trade-offs:**
-- Re-weighting may reduce overall R² by 0.02-0.05
-- But improves worst-sector performance by 0.15-0.30
-- **Fairness > Marginal accuracy** for financial applications
-
----
-
-## Quick Start Guide
-
-### Installation
-
-```bash
-# Clone repository
-git clone <repository-url>
-cd financial-stress-test
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Complete Pipeline Execution
-
-```bash
-# 1. Generate Scenarios (~10 min)
-python src/scenario_generation/Dense_VAE_optimized_mlflow_updated.py
-
-# 2. Prepare Forecasting Data (~5 min)
-python src/preprocessing/drop_features.py
-python src/preprocessing/create_targets.py
-python src/preprocessing/create_temporal_splits.py
-python src/preprocessing/handle_outliers_after_split.py
-python src/preprocessing/handle_missing_values_after_split.py
-
-# 3. Train Forecasting Models (~60 min)
-python src/models/xgboost_model.py
-python src/models/train_lstm_model.py
-python src/models/train_ensemble.py
-
-# 4. Anomaly Detection Pipeline (~10 min)
-python src/eda/eda.py
-python src/labeling/auto_threshold_extractor.py
-python src/labeling/snorkel_pipeline.py
-python src/models/train_anomaly_detection.py
-
-# 5. Bias Detection (~5 min)
-python src/evaluation/detect_crisis_bias.py --model xgboost --target all
-python src/evaluation/detect_sector_bias.py --model xgboost --target all
-
-# 6. View Results
-mlflow ui --port 5000  # http://localhost:5000
-```
-
-**Total Runtime:** ~90 minutes | **Human Intervention:** Zero (fully automated)
-
-### Production Inference
-
-```python
-import pickle
-import torch
-import numpy as np
-
-# 1. Generate Stress Scenario
-vae = torch.load('outputs/output_Dense_VAE_optimized/dense_vae_optimized_model.pth')
-z = torch.randn(1, 32) * 2.5  # Severe scenario
-scenario = vae.decoder(z).detach().numpy()
-
-# 2. Predict Company Outcomes
-xgb_model = pickle.load(open('models/xgboost/xgboost_revenue.pkl', 'rb'))
-predicted_revenue = xgb_model.predict(scenario)
-
-# 3. Assess Risk
-risk_model = pickle.load(open('models/anomaly_detection/One_Class_SVM/model.pkl', 'rb'))
-scaler = pickle.load(open('models/anomaly_detection/One_Class_SVM/scaler.pkl', 'rb'))
-
-X_scaled = scaler.transform(scenario)
-prediction = risk_model.predict(X_scaled)  # -1 = AT_RISK, 1 = normal
-risk_score = -risk_model.score_samples(X_scaled)  # Higher = riskier
-
-# Normalize to 0-100 scale
-risk_score_normalized = (risk_score - risk_score.min()) / (risk_score.max() - risk_score.min()) * 100
-
-print(f"Predicted Revenue: ${predicted_revenue[0]:,.0f}")
-print(f"Risk Assessment: {'AT_RISK' if prediction[0] == -1 else 'NORMAL'}")
-print(f"Risk Score: {risk_score_normalized[0]:.1f}/100")
-```
-
----
-
-## Results & Performance
-
-### End-to-End System Performance
-
-**Model 1: Scenario Generation**
-- ✅ KS Pass Rate: 80.6% (excellent statistical validity)
-- ✅ Correlation MAE: 0.0645 (good relationship preservation)
-- ✅ 100 diverse scenarios across 4 severity levels
-- ✅ All quality checks passed
-
-**Model 2: Financial Forecasting**
-- ✅ Revenue R²: 0.92 (excellent)
-- ✅ EPS R²: 0.71 (good)
-- ⚠️ Sector bias detected (8/10 sectors)
-- ✅ Stable during COVID crisis (1.2× RMSE ratio)
-
-**Model 3: Anomaly Detection**
-- ✅ ROC-AUC: 0.82 (96% of 0.85 target)
-- ✅ At-risk rate: 3.55% (realistic)
-- ✅ Zero sector bias
-- ✅ 100% label coverage
-- ✅ Fully automated (no manual labeling)
-
-### Key Achievements
-
-**Technical:**
-- ✅ 40+ MLflow experiments tracked
-- ✅ 100% reproducibility (seed=42, DVC versioning)
-- ✅ 84% test coverage
-- ✅ Comprehensive bias detection across 3 dimensions
-- ✅ End-to-end automation (0 manual intervention)
-
-**Business:**
-- ✅ Proactive risk identification (6-12 months ahead)
-- ✅ $0 labeling cost vs $2K-4K industry standard
-- ✅ Regulatory compliance (Basel III ready)
-- ✅ Explainable predictions (SHAP + feature importance)
-
-### Known Limitations & Future Work
-
-**Current Limitations:**
-
-1. **Forecasting Sector Bias:** 8/10 sectors show bias  
-   - **Mitigation Plan:** Sector-specific models + log-scale transformation  
-   - **Expected Improvement:** +0.15-0.30 R² for worst sectors
-
-2. **Anomaly Detection Performance:** 96% of target (0.82 vs 0.85 ROC-AUC)  
-   - **Enhancement Ready:** Enhanced features + ensemble model  
-   - **Expected Improvement:** 0.82 → 0.90+ ROC-AUC
-
-3. **Stock Return Unpredictability:** R² < 0 (inherent market noise)  
-   - **Recommendation:** Focus on fundamental metrics (revenue, EPS)
-
-**Planned Enhancements (1-2 days implementation):**
-
-1. **Enhanced Feature Engineering** (Code ready: `enhanced_feature_engineering.py`)  
-   - 17 interaction features (debt×VIX, profitability×leverage)  
-   - Expected gain: +0.02-0.05 ROC-AUC
-
-2. **Ensemble Anomaly Model** (Code ready: `ensemble_model.py`)  
-   - Weighted voting (IF + LOF + One-Class SVM)  
-   - Expected gain: +0.02-0.04 ROC-AUC
-
-3. **Advanced Hyperparameter Tuning** (Code ready: `advanced_hyperparameter_tuning.py`)  
-   - Extensive grid search (100+ combinations)  
-   - Expected gain: +0.01-0.03 ROC-AUC
-
-**Combined Expected Performance:** 0.82 + 0.035 (features) + 0.03 (ensemble) + 0.02 (tuning) = 0.905 ROC-AUC ✅
-
----
-
-## Project Structure
-
-```
-financial-stress-test/
-├── configs/
-│   ├── eda_config.yaml
-│   ├── model_config.yaml
-│   └── best_hyperparameters.yaml
-│
-├── data/
-│   ├── features/
-│   │   ├── macro_features_clean.csv      # Scenario generation input
-│   │   └── features_engineered.csv       # Anomaly detection input
-│   └── splits/
-│       ├── train_data.csv
-│       ├── val_data.csv
-│       └── test_data.csv
-│
-├── src/
-│   ├── scenario_generation/
-│   │   ├── Dense_VAE_optimized_mlflow_updated.py
-│   │   ├── Ensemble_VAE_updated.py
-│   │   ├── model_selection.py
-│   │   ├── model_validation.py
-│   │   └── bias_detection.py
-│   │
-│   ├── preprocessing/
-│   │   ├── drop_features.py
-│   │   ├── create_targets.py
-│   │   ├── create_temporal_splits.py
-│   │   ├── handle_outliers_after_split.py
-│   │   └── handle_missing_values_after_split.py
-│   │
-│   ├── models/
-│   │   ├── xgboost_model.py
-│   │   ├── train_lstm_model.py
-│   │   ├── train_lightgbm_model.py
-│   │   ├── train_ensemble.py
-│   │   ├── train_anomaly_detection.py
-│   │   ├── enhanced_feature_engineering.py
-│   │   ├── advanced_hyperparameter_tuning.py
-│   │   └── ensemble_model.py
-│   │
-│   ├── eda/
+│   ├── eda/                                    # Exploratory analysis
 │   │   └── eda.py
 │   │
-│   ├── labeling/
+│   ├── labeling/                               # Weak supervision
 │   │   ├── auto_threshold_extractor.py
-│   │   ├── labeling_functions_balanced.py
 │   │   └── snorkel_pipeline.py
 │   │
-│   └── evaluation/
-│       ├── detect_crisis_bias.py
-│       └── detect_sector_bias.py
+│   ├── models/                                 # Model training
+│   │   ├── vae/
+│   │   │   ├── Dense_VAE_optimized_mlflow_updated.py
+│   │   │   └── Ensemble_VAE_updated.py
+│   │   ├── predictor/
+│   │   │   ├── predictor_model.py
+│   │   │   ├── create_target.py
+│   │   │   ├── lightgbm_model.py
+│   │   │   ├── lightgbm_hyperparameter_tuning.py
+│   │   │   ├── lstm_model.py
+│   │   │   └── final_selection_after_bias_detection.py
+│   │   ├── train_anomaly_detection.py
+│   │   ├── model_validation.py
+│   │   ├── bias_detection.py
+│   │   └── model_selection.py
+│   │
+│   └── monitoring/                             # Drift detection
+│       ├── model_monitor.py
+│       └── gcp_monitoring_setup.py
 │
-├── outputs/
-│   ├── output_Dense_VAE_optimized/
-│   │   ├── dense_vae_optimized_model.pth
-│   │   ├── generated_scenarios_100.csv
-│   │   └── validation_report.txt
+├── deployment/
+│   ├── api/                                    # FastAPI backend
+│   │   ├── main.py
+│   │   ├── pipeline.py
+│   │   ├── model_loader.py
+│   │   ├── feature_mapper.py
+│   │   ├── gcs_data_fetcher.py
+│   │   ├── config.py
+│   │   ├── verify_gcs_models.py
+│   │   └── finetune_model3.py
 │   │
+│   ├── dashboard/                              # Frontend
+│   │   └── index.html
+│   │
+│   └── docker/                                 # Containerization
+│       ├── Dockerfile.api
+│       └── docker-compose.yml
+│
+├── tests/                                      # Unit tests
+│   ├── test_vae.py
+│   ├── test_predictors.py
+│   └── test_anomaly.py
+│
+├── configs/                                    # Configuration files
+│   └── model_config.yaml
+│
+├── dags/                                       # Airflow DAGs (validation)
+│   └── financial_crisis_pipeline.py
+│
+├── data/                                       # Data storage (local, gitignored)
+│   ├── raw/
+│   ├── processed/
+│   ├── features/
+│   └── splits/
+│
+├── models/                                     # Trained models (local, gitignored)
+│   ├── vae/
+│   ├── best_models/
+│   ├── xgboost/
+│   ├── lightgbm/
+│   ├── lstm/
+│   └── anomaly_detection/
+│
+├── outputs/                                    # Training outputs (local, gitignored)
 │   ├── eda/
-│   │   └── crisis_vs_normal_comparison.csv
-│   │
 │   ├── snorkel/
-│   │   ├── snorkel_labeled_only.csv
-│   │   └── thresholds_auto.yaml
-│   │
+│   ├── vae/
 │   └── models/
+│
+├── requirements.txt                            # Python dependencies
+├── README.md                                  
+├── LICENSE
+└── .gitignore
+```
+
+### Google Cloud Storage Structure
+
+```
+gs://mlops-financial-stress-data/
+│
+├── data/
+│   ├── processed/
+│   │   └── features_engineered.csv            # Main feature dataset
+│   ├── features/
+│   │   ├── macro_features_clean.csv           # VAE training data
+│   │   └── quarterly_data_with_targets_clean.csv
+│   ├── splits/
+│   │   ├── train_data.csv
+│   │   ├── val_data.csv
+│   │   └── test_data.csv
+│   └── anomaly_reports/                        # Analysis outputs
 │       ├── plots/
+│       ├── results/
 │       └── reports/
 │
 ├── models/
-│   ├── xgboost/
-│   │   ├── xgboost_revenue.pkl
-│   │   └── [4 more targets]
-│   │
-│   ├── lstm/
-│   │   ├── lstm_revenue.pth
-│   │   └── [4 more targets]
-│   │
-│   └── anomaly_detection/
-│       ├── Isolation_Forest/
-│       ├── LOF/
-│       └── One_Class_SVM/
-│           ├── model.pkl
-│           ├── scaler.pkl
-│           └── features.json
+│   ├── vae/
+│   │   ├── deployment/
+│   │   │   ├── best_model_deployment.pkl
+│   │   │   ├── deployment_metadata.json
+│   │   │   └── backups/
+│   │   └── outputs/
+│   │       ├── output_Dense_VAE_optimized/
+│   │       └── output_Ensemble_VAE/
+│   ├── anomaly_detection/
+│   │   ├── model.pkl
+│   │   ├── scaler.pkl
+│   │   ├── features.json
+│   │   ├── model_metadata.json
+│   │   └── backups/
+│   ├── best_models/                            # Predictor models
+│   │   ├── revenue_best.pkl
+│   │   ├── eps_best.pkl
+│   │   ├── debt_equity_best.pkl
+│   │   ├── profit_margin_best.pkl
+│   │   ├── stock_return_best.pkl
+│   │   └── model_comparison_report.json
+│   ├── xgboost/                                # Model variants
+│   ├── lightgbm/
+│   └── lstm/
 │
-├── reports/
-│   ├── crisis_bias/
-│   ├── bias_detection/
-│   └── sector_bias/
+├── outputs/
+│   ├── eda/                                    # Exploratory analysis
+│   │   ├── plots/
+│   │   ├── data/
+│   │   └── reports/
+│   ├── snorkel/                                # Labeling outputs
+│   │   ├── data/
+│   │   │   ├── snorkel_labeled_data.csv
+│   │   │   ├── snorkel_labeled_only.csv
+│   │   │   └── lf_summary.csv
+│   │   ├── plots/
+│   │   └── reports/
+│   └── vae/                                    # VAE outputs
+│       ├── validation/
+│       ├── bias_detection/
+│       └── model_selection/
 │
-├── mlruns/                # MLflow experiments
-├── logs/                  # Execution logs
-├── requirements.txt
-└── README.md
+├── mlruns/                                     # MLflow experiment logs
+│   ├── vae/
+│   └── model3/
+│
+└── monitoring/
+    └── drift_reports/                          # Weekly monitoring
+        └── drift_YYYYMMDD_HHMMSS.json
 ```
 
 ---
 
-## Tech Stack
+## Model Details
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Data** | Pandas, NumPy | Manipulation, numerical ops |
-| **Scenario Generation** | PyTorch, VAE | Deep generative modeling |
-| **Forecasting** | XGBoost, PyTorch (LSTM), Scikit-learn | Financial prediction |
-| **Anomaly Detection** | Scikit-learn (IF, LOF, One-Class SVM) | Risk identification |
-| **Weak Supervision** | Snorkel 0.9.9 | Automated labeling |
-| **MLOps** | MLflow 2.9+ | Experiment tracking, model registry |
-| **Versioning** | DVC, Git | Data and code versioning |
-| **Validation** | Great Expectations | Data quality |
-| **Interpretability** | SHAP 0.42+ | Feature importance |
-| **Config** | PyYAML | Configuration management |
+### Model 1: VAE Scenario Generator
 
-**Key Versions:**
-- Python: 3.11+
-- PyTorch: 2.0+
-- XGBoost: 1.7+
-- Scikit-learn: 1.3+
-- Snorkel: 0.9.9
-- MLflow: 2.9.0
+**Purpose**: Generate realistic economic stress scenarios
 
----
+**Architecture**:
+```
+Input (72 macro features)
+    ↓
+Encoder: 72 → 64 → 32 → 16 (latent space)
+    ↓
+Sampling: z ~ N(0, σ²)  [σ controls severity]
+    ↓
+Decoder: 16 → 32 → 64 → 72
+    ↓
+Output: Realistic scenario (GDP, VIX, Unemployment, etc.)
+```
 
-## Key Learnings
+**Training**:
+- Data: 9,247 quarterly observations (2010-2023)
+- Epochs: 100
+- Batch Size: 128
+- Optimizer: Adam (lr=0.001)
+- Loss: Reconstruction + KL Divergence
 
-### What Worked Well ✅
+**Performance**:
+- KS Statistic: **0.81** (excellent)
+- Reconstruction Error: 0.023
+- Training Time: 22 minutes
 
-1. **Automated Threshold Extraction:** Eliminated weeks of manual tuning, data-driven approach is auditable
-2. **Temporal Validation:** Prevented look-ahead bias, simulates real deployment
-3. **Multi-Model Ensemble:** +0.05-0.10 R² improvement through model averaging
-4. **Weak Supervision at Scale:** Achieved 100% coverage with 0% manual labeling
-5. **Comprehensive MLflow Tracking:** Enabled rapid iteration and complete audit trail
-
-### Technical Insights
-
-**Insight 1: Financial distress is multi-factorial**
-- Single metrics insufficient (debt OR revenue OR margins)
-- Best performance from composite rules requiring 2-3 conditions
-- Business implication: Risk assessment must be holistic
-
-**Insight 2: Non-linear models outperform linear**
-- One-Class SVM (RBF kernel) > Isolation Forest
-- Why: Debt becomes dangerous DURING stress (interaction), not always
-- Business implication: Need ML, not simple rules
-
-**Insight 3: Temporal splits crucial for financial data**
-- Random splits overestimate performance by 10-15%
-- Why: Temporal autocorrelation, look-ahead bias
-- Business implication: Always validate on future data
-
-**Insight 4: Dense architectures beat complex temporal models for tabular data**
-- Simple feedforward layers outperform complex architectures
-- Preserving full feature dimensionality (no PCA) maintains crisis patterns
-- Including all crisis periods improves tail-risk modeling
+**Files**:
+- Model: `models/vae/deployment/best_model_deployment.pkl`
+- Config: 72 features, latent_dim=16
 
 ---
 
-## References
+### Model 2: Predictor Models (5 Targets)
 
-### Academic Foundations
+**Purpose**: Forecast company financials under scenario
 
-- **Snorkel:** Ratner et al. "Snorkel: Rapid Training Data Creation with Weak Supervision" (VLDB 2018)
-- **Isolation Forest:** Liu et al. "Isolation Forest" (ICDM 2008)
-- **LOF:** Breunig et al. "LOF: Identifying Density-Based Local Outliers" (ACM SIGMOD 2000)
-- **One-Class SVM:** Schölkopf et al. "Support Vector Method for Novelty Detection" (NeurIPS 1999)
-- **VAE:** Kingma & Welling "Auto-Encoding Variational Bayes" (ICLR 2014)
-- **SHAP:** Lundberg & Lee "A Unified Approach to Interpreting Model Predictions" (NeurIPS 2017)
+**Targets**:
+1. Revenue (next quarter)
+2. EPS (earnings per share)
+3. Debt-to-Equity ratio
+4. Profit Margin
+5. Stock Return
 
-### Financial Theory Validation
+**Architecture**: LightGBM / XGBoost (selected per target)
 
-- **Altman Z-Score:** Corporate bankruptcy prediction (5 financial ratios)
-- **Ohlson O-Score:** Probability of bankruptcy within 2 years
-- **Basel III:** Regulatory stress testing frameworks
-- **Fed CCAR/DFAST:** US bank stress testing requirements
+**Training**:
+- Data: 9,183 company-quarters with 211 features
+- Split: Temporal (2010-2019 train, 2020-2021 val, 2022-2023 test)
+- Hyperparameter Tuning: Optuna (30 trials per target)
+- Features: 116 macro + 95 company-specific
 
-**Cross-validation:** Our discovered predictors (leverage, profitability, growth) align with 50+ years of corporate finance research ✅
+**Performance**:
+
+| Target | Best Model | Test R² | RMSE |
+|--------|-----------|---------|------|
+| Revenue | LightGBM-Tuned | 0.78 | $2.1B |
+| EPS | LightGBM-Tuned | 0.71 | $0.42 |
+| Debt/Equity | XGBoost-Tuned | 0.64 | 0.85 |
+| Profit Margin | LightGBM | 0.69 | 3.2% |
+| Stock Return | LightGBM-Tuned | 0.54 | 18.5% |
+
+**Files**:
+- Models: `models/best_models/{target}_best.pkl` (5 files)
 
 ---
 
-## Support & Contribution
+### Model 3: Anomaly Detection (Risk Scoring)
 
-### Getting Help
+**Purpose**: Identify at-risk companies
 
-- **Documentation:** This README
-- **MLflow UI:** `mlflow ui --port 5000`
-- **Logs:** Check `logs/` directory for detailed execution traces
+**Architecture**: One-Class SVM with RBF kernel
 
-### Contributing
+**Training**:
+- Data: 8,632 labeled companies (Snorkel weak supervision)
+- Training Set: ONLY normal companies (7,552 samples)
+- Features: 14 carefully selected (7 macro + 7 company)
+- Hyperparameters: nu=0.12, gamma='scale', kernel='rbf'
 
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/enhancement`)
-3. Run tests (`pytest tests/`)
-4. Submit pull request
+**Feature Selection** (211 → 14):
 
-### Testing
+| # | Feature | Type | Importance |
+|---|---------|------|------------|
+| 1 | Debt_to_Equity | Company | High |
+| 2 | vix_q_mean | Macro | High |
+| 3 | GDP_last | Macro | High |
+| 4 | Unemployment_Rate_last | Macro | High |
+| 5 | net_margin | Company | Medium |
+| 6 | Revenue | Company | Medium |
+| 7 | Current_Ratio | Company | Medium |
+| 8 | Net_Income | Company | Medium |
+| 9 | Federal_Funds_Rate_mean | Macro | Medium |
+| 10 | sp500_q_return | Macro | Medium |
+| 11 | Financial_Stress_Index_mean | Macro | Low |
+| 12 | roa | Company | Low |
+| 13 | roe | Company | Low |
+| 14 | CPI_last | Macro | Low |
 
+**Performance**:
+- ROC-AUC: **0.82**
+- Precision: 0.58 (58% of flagged companies actually at-risk)
+- Recall: 0.68 (catches 68% of at-risk companies)
+- F1 Score: 0.63
+
+**Risk Score Calibration**:
+- 0-25: LOW (safe companies)
+- 25-50: MODERATE (watch list)
+- 50-75: HIGH (vulnerable)
+- 75-100: CRITICAL (high risk)
+
+**Files**:
+- Model: `models/anomaly_detection/model.pkl`
+- Scaler: `models/anomaly_detection/scaler.pkl`
+- Features: `models/anomaly_detection/features.json`
+
+---
+
+## Running Tests
+
+### Test Execution
+
+**Run all tests:**
 ```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
-
-# Current coverage: 84%
+pytest tests/
 ```
+
+**Run specific test suite:**
+```bash
+pytest tests/test_anomaly.py
+```
+
+**Run with coverage report:**
+```bash
+pytest tests/ --cov=src --cov-report=html
+```
+
+### Test Categories
+
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: Complete pipeline validation
+- **Model Tests**: Prediction accuracy verification
 
 ---
 
-**Project Status:** ✅ Production-Ready (Staging Deployment)
+## 🔧 Configuration
 
-**Last Updated:** December 2025
+### Environment Variables
+
+Create `.env` file in project root with required configuration:
+
+**GCP Configuration:**
+- GCS bucket name
+- GCS project ID
+- Service account credentials path
+
+**API Configuration:**
+- Host and port settings
+- Log level
+
+**Model Configuration:**
+- Drift detection thresholds
+- Email notification settings
+
+**MLflow:**
+- Tracking URI
+
+### Model Configuration
+
+Edit `configs/model_config.yaml` to adjust:
+
+**VAE Settings:**
+- Latent dimensions
+- Learning rate
+- Batch size
+- Training epochs
+
+**Predictor Settings:**
+- Optuna trial count
+- Train/validation/test split ratios
+
+**Anomaly Settings:**
+- One-Class SVM parameters (nu, kernel, gamma)
+
+---
+
+## Model Performance Comparison
+
+### VAE Models Tested
+
+| Model | KS Statistic | Inference Time | Model Size | Selected |
+|-------|--------------|----------------|------------|----------|
+| Dense VAE (latent=8) | 0.72 | 35ms | 1.8 MB | No |
+| Dense VAE (latent=16) | 0.81 | 50ms | 2.3 MB | Yes |
+| Dense VAE (latent=32) | 0.82 | 95ms | 4.1 MB | No |
+| Ensemble VAE (5 models) | 0.83 | 200ms | 11.5 MB | Production |
+
+**Selection Criteria**: KS > 0.80, Inference < 100ms (for real-time API)
+
+### Anomaly Detection Models Tested
+
+| Model | ROC-AUC | Precision | Recall | Inference | Selected |
+|-------|---------|-----------|--------|-----------|----------|
+| Isolation Forest | 0.78 | 0.51 | 0.62 | 45ms | No |
+| Local Outlier Factor | 0.75 | 0.48 | 0.55 | 120ms | No |
+| One-Class SVM (RBF) | **0.82** | **0.58** | **0.68** | 48ms | Yes |
+| One-Class SVM (Linear) | 0.74 | 0.52 | 0.60 | 35ms | No |
+| DBSCAN | 0.68 | 0.42 | 0.51 | 200ms | No |
+
+**Winner**: One-Class SVM (RBF kernel) - Best balance of accuracy and speed
+
+---
+
+## 🎓 Usage Examples
+
+### Dashboard Workflows
+
+**Test Single Company:**
+- Select company from dropdown
+- Choose economic scenario
+- Click run stress test
+- View risk score, predictions, and explanations
+
+**Portfolio Analysis:**
+- Upload CSV file with holdings
+- Select scenario to test
+- View risk heatmap for all holdings
+- Review rebalancing suggestions
+
+**Scenario Exploration:**
+- Generate multiple scenarios
+- Compare different crisis types
+- Download scenario data for external analysis
+
+### Understanding Results
+
+**Risk Score Interpretation:**
+- **0-25 (LOW)**: Company shows strong resilience to scenario
+- **25-50 (MODERATE)**: Company can likely withstand stress
+- **50-75 (HIGH)**: Significant vulnerability detected
+- **75-100 (CRITICAL)**: Company highly vulnerable to scenario
+
+**SHAP Explanations:**
+Each prediction includes top 5 factors contributing to risk, showing:
+- Feature name
+- Contribution to risk score
+- Whether it increases or decreases risk
+- Normalized impact value
+
+---
+
+## Monitoring Dashboard
+
+### Accessing Cloud Monitoring
+
+Navigate to Google Cloud Console and view custom metrics:
+- VAE reconstruction quality (KS statistic)
+- Anomaly detection accuracy (ROC-AUC)
+- System drift status
+
+### Key Metrics Tracked
+
+**Model Performance:**
+- VAE KS Statistic (target: > 0.70)
+- Anomaly ROC-AUC (target: > 0.75)
+- Predictor R² scores
+
+**System Health:**
+- API request latency
+- Error rates
+- Model inference time
+- Memory usage
+
+**Drift Indicators:**
+- Data distribution changes
+- Concept drift (relationship changes)
+- Performance degradation
+
+---
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests (`pytest tests/`)
+5. Commit (`git commit -m 'Add amazing feature'`)
+6. Push (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Development Guidelines
+
+- Follow PEP 8 style guide
+- Add unit tests for new features
+- Update documentation
+- Ensure CI/CD passes before PR
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Team
+
+**MLOps Group 11 - Northeastern University**
+
+| Member | GitHub |
+|--------|--------|
+| Novia Vijay Dsilva | [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?logo=github)](https://github.com/Novia-Dsilva) |
+| Sushmitha Sudharsan | [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?logo=github)](https://github.com/SushmithaSudharsan) |
+| Priyanka Senthilkumar | [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?logo=github)](https://github.com/priyanka-senthil) |
+| Sanika Anant Chaudhari | [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?logo=github)](https://github.com/Sanika0701) |
+| Parth Sanjay Saraykar | [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?logo=github)](https://github.com/parth-username) |
+| Sailee Ritesh Choudhari | [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue?logo=github)](https://github.com/sailee-username) |
+---
+
+## Acknowledgments
+
+- **Data Sources**: Federal Reserve Economic Data (FRED), Yahoo Finance, Alpha Vantage
+- **ML Frameworks**: TensorFlow, LightGBM, scikit-learn
+- **Infrastructure**: Google Cloud Platform
+
+---
+
+*Northeastern University - MLOps Course Project - Fall 2025*

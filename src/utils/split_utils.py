@@ -19,7 +19,7 @@ def get_feature_target_split(
         exclude_cols = ['Date', 'Year', 'Quarter']
     
     print(f"\n{'='*80}")
-    print(f"🎯 FEATURE-TARGET SPLIT FOR: {target_col}")
+    print(f"FEATURE-TARGET SPLIT FOR: {target_col}")
     print(f"{'='*80}")
     
     # Base exclusions
@@ -40,7 +40,7 @@ def get_feature_target_split(
         current_cols = target_to_current[target_col]
         existing = [c for c in current_cols if c in df.columns]
         if existing:
-            print(f"   ❌ Excluding current value: {existing}")
+            print(f"Excluding current value: {existing}")
             base_exclusions.extend(existing)
     
     # Exclude rolling features
@@ -54,18 +54,18 @@ def get_feature_target_split(
     if target_col in rolling_patterns:
         rolling_cols = [c for c in df.columns if any(p in c for p in rolling_patterns[target_col])]
         if rolling_cols:
-            print(f"   ❌ Excluding {len(rolling_cols)} rolling features")
+            print(f"Excluding {len(rolling_cols)} rolling features")
             base_exclusions.extend(rolling_cols)
     
     # Keep lagged features
     lagged_features = [c for c in df.columns if '_t_' in c or 'Δ' in c]
     if lagged_features:
-        print(f"   ✅ KEEPING {len(lagged_features)} lagged/delta features")
+        print(f"KEEPING {len(lagged_features)} lagged/delta features")
     
     # Exclude other targets
     other_targets = [c for c in df.columns if c.startswith('target_') and c != target_col]
     if other_targets:
-        print(f"   ❌ Excluding {len(other_targets)} other targets")
+        print(f"Excluding {len(other_targets)} other targets")
         base_exclusions.extend(other_targets)
     
     # Get features
@@ -74,7 +74,7 @@ def get_feature_target_split(
     X = df[feature_cols].copy()
     y = df[target_col].copy()
     
-    print(f"\n📊 Initial feature set: {len(feature_cols)} columns")
+    print(f"\nInitial feature set: {len(feature_cols)} columns")
     
     # Handle categoricals
     categorical_cols = X.select_dtypes(include=['object', 'string']).columns.tolist()
@@ -85,7 +85,7 @@ def get_feature_target_split(
             print(f"   - {col}: {X[col].nunique()} unique")
         
         X = pd.get_dummies(X, columns=categorical_cols, drop_first=True, dtype=int)
-        print(f"   ✅ After encoding: {X.shape[1]} features")
+        print(f"After encoding: {X.shape[1]} features")
     
     # Check non-numeric
     non_numeric = X.select_dtypes(include=['object', 'string']).columns.tolist()
