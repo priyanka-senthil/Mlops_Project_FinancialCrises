@@ -1,21 +1,41 @@
 # Financial Stress Test Platform
 
-[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MLOps](https://img.shields.io/badge/MLOps-Production-green.svg)]()
-
-This MLOps Project focuses on generating realistic economic scenarios and predict company financial vulnerability using a production-grade MLOps pipeline with automated drift detection and continuous deployment.
-> **Note:** This project was deployed and live for 6 months. Due to Google Cloud credit limits, the live deployment is currently paused.
+This MLOps project focuses on generating realistic economic scenarios and predicting company financial vulnerability using a production-grade MLOps pipeline with automated drift detection and continuous deployment.
 
 <div align="center">
 
-**Try the UI right now in your browser — no backend, no login needed**
+### 🚀 Explore the Project
 
-[![View Mockup Dashboard](https://img.shields.io/badge/View-Mockup_Dashboard-3355D8?style=for-the-badge&logo=googlechrome&logoColor=white)](https://priyanka-senthil.github.io/Mlops_Project_FinancialCrises/dashboard/financial-stress-test-platform-mockup.html)
-[![Watch Video Walkthrough](https://img.shields.io/badge/Watch-Video_Walkthrough-red?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1Wi47Prnuu1JS8La7ieR6GnrmXzakGJwp/view?usp=sharing)
+<table>
+<tr>
+<td align="center" width="50%">
+
+**🖥️ Interactive Mockup**
+
+Full UI, right in your browser<br/>No backend. No login. Just click.
+
+<a href="https://priyanka-senthil.github.io/Mlops_Project_FinancialCrises/dashboard/financial-stress-test-platform-mockup.html">
+<img src="https://img.shields.io/badge/Launch-Mockup_UI-3355D8?style=for-the-badge&logo=googlechrome&logoColor=white" />
+</a>
+
+</td>
+<td align="center" width="50%">
+
+**🎥 Live Demo Video**
+
+See it running for real<br/>Live in production for 6 months
+
+<a href="https://drive.google.com/file/d/1Wi47Prnuu1JS8La7ieR6GnrmXzakGJwp/view?usp=sharing">
+<img src="https://img.shields.io/badge/Watch-Video_Walkthrough-EA4335?style=for-the-badge&logo=googledrive&logoColor=white" />
+</a>
+
+</td>
+</tr>
+</table>
+
+*Note: Currently paused due to Google Cloud credit limits — see the video above for the full live experience.*
 
 </div>
----
 
 ## Table of Contents
 
@@ -1345,3 +1365,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 *Northeastern University - MLOps Course Project - Fall 2025*
+
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![MLOps](https://img.shields.io/badge/MLOps-Production-green.svg)]()
