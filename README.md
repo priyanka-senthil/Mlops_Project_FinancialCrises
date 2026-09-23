@@ -4,8 +4,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MLOps](https://img.shields.io/badge/MLOps-Production-green.svg)]()
 
-## This MLOps Project focuses on generating realistic economic scenarios and predict company financial vulnerability using a production-grade MLOps pipeline with automated drift detection and continuous deployment.
+This MLOps Project focuses on generating realistic economic scenarios and predict company financial vulnerability using a production-grade MLOps pipeline with automated drift detection and continuous deployment.
+> **Note:** This project was deployed and live for 6 months. Due to Google Cloud credit limits, the live deployment is currently paused.
 
+<div align="center">
+
+**Try the UI right now in your browser — no backend, no login needed**
+
+[![View Mockup Dashboard](https://img.shields.io/badge/View-Mockup_Dashboard-3355D8?style=for-the-badge&logo=googlechrome&logoColor=white)](https://priyanka-senthil.github.io/Mlops_Project_FinancialCrises/dashboard/financial-stress-test-platform-mockup.html)
+[![Watch Video Walkthrough](https://img.shields.io/badge/Watch-Video_Walkthrough-red?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1Wi47Prnuu1JS8La7ieR6GnrmXzakGJwp/view?usp=sharing)
+
+</div>
 ---
 
 ## Table of Contents
