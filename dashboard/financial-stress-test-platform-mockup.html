@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Financial Stress Test Platform</title>
+<style>
+  :root{
+    --navy:#1b2a4a;
+    --navy-light:#243a63;
+    --blue:#3355d8;
+    --blue-hover:#2846bd;
+    --blue-bg:#eef1fc;
+    --text-navy:#1b2a4a;
+    --text-gray:#6b7280;
+    --text-light:#9aa1ac;
+    --border:#e3e6ea;
+    --bg-page:#f4f5f7;
+    --bg-card:#ffffff;
+    --green:#7fb894;
+    --green-text:#2f7d4f;
+    --green-badge-bg:#e2f2e7;
+    --green-badge-text:#2f7d4f;
+    --amber:#e0ac47;
+    --amber-text:#a9700c;
+    --amber-badge-bg:#fdf1de;
+    --amber-badge-text:#a9700c;
+    --orange:#dd8a3d;
+    --orange-text:#b5620f;
+    --orange-badge-bg:#fbe8d3;
+    --orange-badge-text:#9a5b0a;
+    --red:#d9645a;
+    --red-text:#c0392b;
+    --red-badge-bg:#fbe2df;
+    --red-badge-text:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg-page);
+    color:var(--text-navy);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue);text-decoration:none;}
+  #root{min-height:100vh;}
+
+  /* ---------- LOGIN ---------- */
+  .login-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#7c74dd 0%,#8f86e6 50%,#9a8fea 100%);
+    padding:40px 20px;
+  }
+  .login-card{
+    width:100%;
+    max-width:460px;
+    background:#fff;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(20,20,60,0.25);
+  }
+  .login-header{
+    background:var(--navy);
+    color:#fff;
+    padding:32px 36px 28px;
+    text-align:left;
+  }
+  .login-header h1{
+    margin:0;
+    font-size:24px;
+    font-weight:700;
+  }
+  .login-header p{
+    margin:6px 0 0;
+    font-size:13.5px;
+    color:#c3cadf;
+  }
+  .login-body{padding:32px 36px 8px;}
+  .field{margin-bottom:22px;}
+  .field label{
+    display:block;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text-navy);
+    margin-bottom:8px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:12px 14px;
+    font-size:14px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:#fff;
+    color:var(--text-navy);
+    font-family:inherit;
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:12px 22px;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    border-radius:6px;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+    white-space:nowrap;
+  }
+  .btn-block{width:100%;padding:13px 22px;font-size:14px;}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-primary:hover{background:var(--blue-hover);}
+  .btn-outline{background:#fff;color:var(--text-navy);border:1px solid var(--border);}
+  .btn-outline:hover{background:#f3f4f6;}
+  .btn-danger{background:#d9564d;color:#fff;}
+  .btn-danger:hover{background:#c94b42;}
+  .btn-green{background:#5aa876;color:#fff;}
+  .btn-green:hover{background:#4d9367;}
+  .btn-sm{padding:8px 16px;font-size:12px;}
+  .btn-header{background:transparent;border:1px solid rgba(255,255,255,0.35);color:#fff;}
+  .btn-header:hover{background:rgba(255,255,255,0.12);}
+
+  .demo-box{
+    margin:22px 36px 32px;
+    background:#f6f7f9;
+    border-radius:8px;
+    padding:18px 20px;
+    font-size:13.5px;
+  }
+  .demo-box .dtitle{font-weight:700;margin-bottom:10px;color:var(--text-navy);}
+  .demo-box .drow{margin-bottom:6px;color:var(--text-navy);}
+  .demo-box .drow b{font-weight:600;}
+  .demo-box code{
+    background:#e7e9ee;
+    padding:2px 7px;
+    border-radius:4px;
+    font-family:SFMono-Regular,Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:12.5px;
+    color:#374151;
+  }
+
+  /* ---------- APP SHELL ---------- */
+  .app-header{
+    background:var(--navy);
+    color:#fff;
+    padding:20px 36px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .app-header h1{margin:0;font-size:21px;font-weight:700;}
+  .app-header .sub{margin:2px 0 0;font-size:12.5px;color:#aab3ca;}
+  .header-right{display:flex;align-items:center;gap:18px;font-size:13.5px;color:#d7dbea;}
+  .header-right b{color:#fff;}
+
+  .nav-tabs{
+    background:#fff;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    padding:0 30px;
+    overflow-x:auto;
+  }
+  .nav-tab{
+    padding:17px 20px;
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    color:#8b93a3;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    white-space:nowrap;
+  }
+  .nav-tab:hover{color:var(--text-navy);}
+  .nav-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+  .content{
+    max-width:1500px;
+    margin:0 auto;
+    padding:34px 36px 80px;
+  }
+  .page-title{font-size:26px;font-weight:700;margin:0 0 4px;color:var(--text-navy);}
+  .page-sub{font-size:14.5px;color:var(--text-light);margin:0 0 22px;}
+
+  .card{
+    background:var(--bg-card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:28px 30px;
+    margin-bottom:24px;
+  }
+  .card h3{margin:0 0 18px;font-size:17px;font-weight:700;color:var(--text-navy);}
+  .card-divider{border-bottom:1px solid var(--border);margin:0 0 20px;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  @media (max-width:1000px){
+    .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+  }
+
+  .stat-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:22px 24px;
+  }
+  .stat-card .stat-label{font-size:12px;font-weight:700;letter-spacing:0.5px;color:var(--text-light);text-transform:uppercase;}
+  .stat-card .stat-value{font-size:38px;font-weight:800;color:var(--text-navy);margin:10px 0 2px;}
+  .stat-card .stat-sub{font-size:13px;color:var(--text-light);}
+
+  .info-banner{
+    background:var(--blue-bg);
+    border-left:4px solid var(--blue);
+    border-radius:4px;
+    padding:14px 18px;
+    font-size:14px;
+    color:var(--text-navy);
+    margin-bottom:24px;
+  }
+  .info-banner b{color:var(--blue);}
+
+  .selected-banner{
+    background:#f4f5fb;
+    border-left:4px solid var(--blue);
+    border-radius:4px;
+    padding:14px 18px;
+    font-size:14px;
+    color:var(--text-navy);
+    margin:18px 0;
+  }
+  .selected-banner b{color:#2b3a67;}
+
+  label.form-label{display:block;font-size:14px;font-weight:700;color:var(--text-navy);margin-bottom:8px;}
+  .form-input, select.form-input{
+    width:100%;
+    padding:12px 14px;
+    font-size:14px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    background:#fff;
+    color:var(--text-navy);
+    font-family:inherit;
+  }
+  .form-input:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:20px;align-items:end;}
+  .form-row2{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:end;}
+  @media (max-width:900px){.form-row,.form-row2{grid-template-columns:1fr;}}
+
+  /* badges */
+  .badge{
+    display:inline-block;
+    padding:4px 11px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    border-radius:14px;
+  }
+  .badge-green{background:var(--green-badge-bg);color:var(--green-badge-text);}
+  .badge-amber{background:var(--amber-badge-bg);color:var(--amber-badge-text);}
+  .badge-orange{background:var(--orange-badge-bg);color:var(--orange-badge-text);}
+  .badge-red{background:var(--red-badge-bg);color:var(--red-badge-text);}
+  .badge-blue{background:var(--blue-bg);color:var(--blue);}
+
+  /* risk score boxes */
+  .risk-box{border-radius:8px;padding:52px 30px;text-align:center;color:#fff;}
+  .risk-box .rscore{font-size:58px;font-weight:800;line-height:1;}
+  .risk-box .rlabel{font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:10px;}
+  .risk-box .rdesc{font-size:13.5px;margin-top:10px;opacity:0.92;}
+  .risk-box.rlow{background:var(--green);}
+  .risk-box.rmoderate{background:var(--amber);}
+  .risk-box.rhigh{background:var(--orange);}
+  .risk-box.rcritical{background:var(--red);}
+
+  .risk-text-low{color:var(--green-text);font-weight:700;}
+  .risk-text-moderate{color:var(--amber-text);font-weight:700;}
+  .risk-text-high{color:var(--orange-text);font-weight:700;}
+  .risk-text-critical{color:var(--red-text);font-weight:700;}
+
+  .mini-box{border-radius:8px;padding:26px 20px;text-align:center;color:#fff;}
+  .mini-box .mlabel{font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;opacity:0.9;}
+  .mini-box .mscore{font-size:34px;font-weight:800;margin:8px 0 2px;}
+  .mini-box .msub{font-size:12px;opacity:0.85;}
+  .mini-box.mgreen{background:var(--green);}
+  .mini-box.mblue{background:var(--blue);}
+  .mini-box.morange{background:var(--orange);}
+
+  /* tables */
+  table.data-table{width:100%;border-collapse:collapse;font-size:14px;}
+  table.data-table th{
+    text-align:left;
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color:var(--text-light);
+    padding:10px 8px;
+    border-bottom:1px solid var(--border);
+  }
+  table.data-table td{
+    padding:14px 8px;
+    border-bottom:1px solid var(--border);
+    color:var(--text-navy);
+    vertical-align:middle;
+  }
+  table.data-table tr:last-child td{border-bottom:none;}
+  table.data-table td.tot-row, table.data-table th.tot-row{font-weight:700;}
+
+  .impact-bar-wrap{display:flex;align-items:center;gap:10px;}
+  .impact-bar-track{width:120px;height:8px;background:#e7e9ee;border-radius:4px;overflow:hidden;}
+  .impact-bar-fill{height:100%;background:var(--green);border-radius:4px;}
+  .impact-bar-fill.neg{background:var(--green);}
+  .impact-bar-fill.pos{background:var(--red);}
+
+  /* scenario cards */
+  .scenario-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  @media (max-width:1200px){.scenario-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:640px){.scenario-grid{grid-template-columns:1fr;}}
+  .scenario-card{
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:18px 20px;
+    cursor:pointer;
+    background:#fff;
+  }
+  .scenario-card.selected{border:2px solid var(--blue);background:#f5f7ff;}
+  .scenario-card .sc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .scenario-card .sc-head b{font-size:15px;color:var(--text-navy);}
+  .scenario-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0f1f4;font-size:13.5px;}
+  .scenario-row:last-child{border-bottom:none;}
+  .scenario-row span:first-child{color:var(--text-light);}
+  .scenario-row span:last-child{font-weight:700;color:var(--text-navy);}
+
+  /* sector exposure card */
+  .sector-card{border:1px solid var(--border);border-radius:8px;padding:20px 22px;margin-bottom:14px;}
+  .sector-card .sc-title{font-weight:700;font-size:15px;color:var(--text-navy);}
+  .sector-card .sc-score{font-size:30px;font-weight:800;margin:8px 0 6px;}
+  .sector-card .sc-meta{font-size:13px;color:var(--text-light);}
+
+  .company-detail{border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;}
+  .company-detail-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 22px;cursor:pointer;
+  }
+  .company-detail-head:hover{background:#fafbfc;}
+  .company-detail-body{padding:0 22px 22px;}
+  .cdh-left b{font-size:14.5px;color:var(--text-navy);}
+  .cdh-left span{font-size:13px;color:var(--text-light);margin-left:10px;}
+  .cdh-right{font-size:14px;color:var(--text-navy);}
+  .cdh-right b{color:var(--blue);font-size:17px;}
+  .chevron{font-size:12px;color:var(--text-light);margin-left:10px;}
+
+  .scenario-results-list .sr-row{
+    display:flex;justify-content:space-between;
+    padding:14px 18px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;font-size:14px;
+  }
+  .sr-row b{font-weight:800;color:var(--blue);font-size:15px;}
+
+  .breach-box{border:1px solid #f0d3ce;background:#fff;border-radius:6px;padding:18px 20px;margin-bottom:14px;}
+  .breach-box .bt{font-weight:700;font-size:14.5px;color:var(--text-navy);margin-bottom:8px;}
+  .breach-box .bt .sev{color:var(--red-text);}
+  .breach-box .bline{font-size:13.5px;color:var(--text-navy);margin:3px 0;}
+  .breach-alert{background:#fbeceb;border-left:4px solid var(--red);border-radius:4px;padding:12px 18px;font-weight:700;color:var(--red-text);margin-bottom:18px;font-size:14px;}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(20,25,40,0.5);
+    display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;
+  }
+  .modal-box{background:#fff;border-radius:8px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:28px 30px;}
+  .modal-box h3{margin-top:0;}
+  .modal-close-row{text-align:right;margin-top:18px;}
+
+  .empty-state{padding:40px 0;text-align:center;color:var(--text-light);font-size:14px;}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+  .toolbar .tools{display:flex;gap:10px;}
+  .toolbar .selected-count{font-size:14px;color:var(--text-navy);font-weight:600;}
+
+  .kv-list{font-size:14px;}
+  .kv-list .kv-row{display:flex;padding:12px 0;border-bottom:1px solid var(--border);}
+  .kv-list .kv-row:last-child{border-bottom:none;}
+  .kv-list .kv-label{width:220px;font-size:11.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-light);}
+  .kv-list .kv-val{color:var(--text-navy);}
+
+  .bullets{padding-left:20px;margin:10px 0;font-size:14px;color:var(--text-navy);line-height:1.9;}
+  .exec-summary{background:#f1f7f3;border-left:4px solid var(--green);border-radius:4px;padding:14px 18px;margin-bottom:18px;}
+  .exec-summary.fail{background:#fbeceb;border-left-color:var(--red);}
+  .exec-summary b{display:block;margin-bottom:4px;}
+
+  .link-btn{background:none;border:none;color:var(--blue);font-weight:600;font-size:13.5px;cursor:pointer;padding:0;}
+
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#d3d7de;border-radius:5px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* ============================================================
+   DATA LAYER
+   ============================================================ */
+
+var SECTOR_BETA = {
+  "Technology":0.85, "Financials":1.15, "Industrials":1.05, "Consumer Staples":0.5,
+  "Communications":0.8, "Energy":1.25, "Utilities":0.45, "Consumer Discretionary":1.3,
+  "Healthcare":0.55
+};
+
+var COMPANIES = [
+  {ticker:"AAPL", sector:"Technology"},
+  {ticker:"AMZN", sector:"Technology"},
+  {ticker:"C", sector:"Financials"},
+  {ticker:"CAT", sector:"Industrials"},
+  {ticker:"CL", sector:"Consumer Staples"},
+  {ticker:"CMCSA", sector:"Communications"},
+  {ticker:"COF", sector:"Financials"},
+  {ticker:"COP", sector:"Energy"},
+  {ticker:"CVX", sector:"Energy"},
+  {ticker:"D", sector:"Utilities"},
+  {ticker:"DIS", sector:"Communications"},
+  {ticker:"DUK", sector:"Utilities"},
+  {ticker:"EA", sector:"Communications"},
+  {ticker:"EOG", sector:"Energy"},
+  {ticker:"F", sector:"Consumer Discretionary"},
+  {ticker:"GE", sector:"Industrials"},
+  {ticker:"GOOGL", sector:"Technology"},
+  {ticker:"GS", sector:"Financials"},
+  {ticker:"HON", sector:"Industrials"},
+  {ticker:"IBM", sector:"Technology"},
+  {ticker:"INTC", sector:"Technology"},
+  {ticker:"JNJ", sector:"Healthcare"},
+  {ticker:"JPM", sector:"Financials"},
+  {ticker:"KMB", sector:"Consumer Staples"},
+  {ticker:"KO", sector:"Consumer Staples"},
+  {ticker:"LLY", sector:"Healthcare"},
+  {ticker:"LMT", sector:"Industrials"},
+  {ticker:"MAR", sector:"Consumer Discretionary"},
+  {ticker:"MCD", sector:"Consumer Discretionary"},
+  {ticker:"MDLZ", sector:"Consumer Staples"},
+  {ticker:"MMM", sector:"Industrials"},
+  {ticker:"MO", sector:"Consumer Staples"},
+  {ticker:"MRK", sector:"Healthcare"},
+  {ticker:"MS", sector:"Financials"},
+  {ticker:"MSFT", sector:"Technology"}
+];
+
+var SHAP_FEATURES = ["Debt_to_Equity","vix_q_mean","GDP_last","Unemployment_Rate_last","net_margin",
+  "Revenue","Current_Ratio","Net_Income","Federal_Funds_Rate_mean","sp500_q_return",
+  "Financial_Stress_Index_mean","roa","roe","CPI_last"];
+
+var DEMO_USERS = [
+  {username:"admin", password:"admin123", role:"ADMIN"},
+  {username:"risk_manager", password:"risk123", role:"RISK MANAGER"},
+  {username:"analyst", password:"analyst123", role:"ANALYST"},
+  {username:"viewer", password:"viewer123", role:"VIEWER"}
+];
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+function hashSeed(str){
+  var h = 1779033703 ^ str.length;
+  for(var i=0;i<str.length;i++){
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function(){
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h = (h ^= h >>> 16) >>> 0;
+    return h / 4294967296;
+  };
+}
+
+function uuidv4(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){
+    var r = Math.random()*16|0, v = c==='x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function fmtMoneyB(n){
+  var sign = n<0 ? '-' : '';
+  return sign + '$' + Math.abs(n).toFixed(2) + 'B';
+}
+function fmtPct1(n){ return (n>=0?'+':'') + n.toFixed(1) + '%'; }
+function fmtPct2(n){ return (n>=0?'+':'') + n.toFixed(2) + '%'; }
+function fmtNum2(n){ return (n>=0?'':'') + n.toFixed(2); }
+function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+function avg(arr){ return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+
+function riskCategory(score){
+  if(score < 25) return {label:'LOW', cls:'low'};
+  if(score < 50) return {label:'MODERATE', cls:'moderate'};
+  if(score < 75) return {label:'HIGH', cls:'high'};
+  return {label:'CRITICAL', cls:'critical'};
+}
+function riskDesc(cat){
+  if(cat==='low') return "Company's current financial position shows strong resilience to this stress scenario";
+  if(cat==='moderate') return "Company shows moderate vulnerability and warrants continued monitoring";
+  if(cat==='high') return "Company shows significant vulnerability to this stress scenario";
+  return "Company is highly vulnerable to this stress scenario and requires immediate attention";
+}
+/* ============================================================
+   COMPANY BASE FINANCIALS
+   ============================================================ */
+function initCompanyFinancials(){
+  COMPANIES.forEach(function(c){
+    var rng = hashSeed(c.ticker + "_base_v1");
+    c.revenue = +(4 + rng()*350).toFixed(2);           // $B
+    c.eps = +(0.25 + rng()*12).toFixed(2);              // $
+    c.debtEquity = +(0.2 + rng()*3.6).toFixed(2);
+    c.profitMargin = +(-4 + rng()*42).toFixed(1);       // %
+    c.currentRatio = +(0.75 + rng()*2.3).toFixed(2);
+    c.roa = +(-2 + rng()*15).toFixed(1);
+    c.roe = +(-3 + rng()*26).toFixed(1);
+    c.netIncome = +(c.revenue*1e9*(c.profitMargin/100)).toFixed(0);
+  });
+}
+COMPANIES.sort(function(a,b){ return a.ticker.localeCompare(b.ticker); });
+initCompanyFinancials();
+
+function getCompany(ticker){
+  for(var i=0;i<COMPANIES.length;i++){ if(COMPANIES[i].ticker===ticker) return COMPANIES[i]; }
+  return null;
+}
+
+/* ============================================================
+   SCENARIO GENERATION
+   ============================================================ */
+function genScenarios(n){
+  var arr = [];
+  for(var i=1;i<=n;i++){
+    var rng = hashSeed("scenario_v3_" + i + "_" + n);
+    var r = rng();
+    var severity;
+    if(r < 0.38) severity = "BASELINE";
+    else if(r < 0.75) severity = "ADVERSE";
+    else severity = "SEVERE";
+    var gdp = +(0.5 + rng()*39.5).toFixed(1);
+    var vix = +(-1 + rng()*7).toFixed(1);
+    var unemployment = +(-8 + rng()*25).toFixed(1);
+    var fedRate = +(-5 + rng()*18).toFixed(2);
+    var name = severity==="BASELINE" ? "Normal Economy" : (severity==="SEVERE" ? "Severe Recession" : "Economic Downturn");
+    arr.push({id:i, severity:severity, name:name, gdp:gdp, vix:vix, unemployment:unemployment, fedRate:fedRate});
+  }
+  return arr;
+}
+
+/* ============================================================
+   RISK / PREDICTION / SHAP MODELS (mock)
+   ============================================================ */
+function findScenario(id){
+  for(var i=0;i<STATE.scenarios.length;i++){ if(STATE.scenarios[i].id===id) return STATE.scenarios[i]; }
+  return null;
+}
+
+function computeRisk(ticker, scenarioId){
+  var c = getCompany(ticker);
+  var s = findScenario(scenarioId);
+  if(!c || !s) return 0;
+  var rng = hashSeed(ticker + "_" + scenarioId + "_risk_v2");
+  var beta = SECTOR_BETA[c.sector] || 1;
+  var sevFactor = s.severity==="BASELINE" ? 0.4 : (s.severity==="ADVERSE" ? 1.0 : 1.6);
+  var score = 7
+    + beta*9*sevFactor
+    + Math.max(0,(s.unemployment-5))*0.85
+    + Math.max(0,s.vix)*1.7
+    + Math.max(0,(c.debtEquity-1))*3.6
+    + Math.max(0,(35-c.profitMargin))*0.12
+    + (rng()*9 - 4.5);
+  score = clamp(score, 1.2, 97);
+  return +score.toFixed(1);
+}
+
+function computePredictions(ticker, scenarioId){
+  var c = getCompany(ticker);
+  var s = findScenario(scenarioId);
+  var rng = hashSeed(ticker + "_" + scenarioId + "_fin_v2");
+  var beta = SECTOR_BETA[c.sector] || 1;
+  var sevFactor = s.severity==="BASELINE" ? 0.12 : (s.severity==="ADVERSE" ? 0.48 : 0.88);
+  var intensity = sevFactor * beta;
+
+  var revChange = -(intensity * (18 + rng()*42));
+  var predRevenue = c.revenue * (1 + revChange/100);
+
+  var epsChange = -(intensity * (12 + rng()*68)) + (rng()*14 - 5);
+  var predEps = c.eps * (1 + epsChange/100);
+
+  var deChange = intensity * (8 + rng()*30);
+  var predDE = c.debtEquity * (1 + deChange/100);
+
+  var pmChange = -(intensity * (8 + rng()*24));
+  var predPM = c.profitMargin * (1 + pmChange/100);
+
+  var stockReturn = -(intensity * (14 + rng()*46)) + (rng()*10 - 3);
+
+  return {
+    revenue:{current:c.revenue, predicted:+predRevenue.toFixed(2), change:+revChange.toFixed(1)},
+    eps:{current:c.eps, predicted:+predEps.toFixed(2), change:+epsChange.toFixed(1)},
+    de:{current:c.debtEquity, predicted:+predDE.toFixed(2), change:+deChange.toFixed(1)},
+    pm:{current:c.profitMargin, predicted:+predPM.toFixed(1), change:+pmChange.toFixed(1)},
+    stock:{predicted:+stockReturn.toFixed(1)}
+  };
+}
+
+function impactTier(absChange){
+  if(absChange >= 50) return 4;
+  if(absChange >= 20) return 3;
+  if(absChange >= 3) return 2;
+  return 1;
+}
+var TIER_LABELS = {
+  revenue:{1:['STABLE','green'],2:['MODERATE','amber'],3:['ELEVATED','orange'],4:['SEVERE','red']},
+  eps:{1:['STABLE','green'],2:['MODERATE','amber'],3:['ELEVATED','orange'],4:['SEVERE','red']},
+  de:{1:['STABLE','green'],2:['RISING','amber'],3:['ELEVATED','orange'],4:['CRITICAL','red']},
+  pm:{1:['STABLE','green'],2:['PRESSURE','amber'],3:['PRESSURE','orange'],4:['SEVERE','red']},
+  stock:{1:['FLAT','green'],2:['DECLINE','amber'],3:['DECLINE','orange'],4:['SEVERE','red']}
+};
+function impactBadge(metric, changePct){
+  var tier = impactTier(Math.abs(changePct));
+  var info = TIER_LABELS[metric][tier];
+  return {label:info[0], cls:info[1]};
+}
+
+function computeShap(ticker, scenarioId){
+  var c = getCompany(ticker);
+  var s = findScenario(scenarioId);
+  var valMap = {
+    "Debt_to_Equity": c.debtEquity,
+    "vix_q_mean": s.vix,
+    "GDP_last": s.gdp*1e12,
+    "Unemployment_Rate_last": s.unemployment,
+    "net_margin": c.profitMargin,
+    "Revenue": c.revenue*1e9,
+    "Current_Ratio": c.currentRatio,
+    "Net_Income": c.netIncome,
+    "Federal_Funds_Rate_mean": s.fedRate,
+    "sp500_q_return": +(hashSeed(ticker+scenarioId+"sp500")()*20-10).toFixed(1),
+    "Financial_Stress_Index_mean": +(50+hashSeed(ticker+scenarioId+"fsi")()*50).toFixed(2),
+    "roa": c.roa,
+    "roe": c.roe,
+    "CPI_last": +(200+hashSeed(ticker+scenarioId+"cpi")()*100).toFixed(1)
+  };
+  var rows = SHAP_FEATURES.map(function(f){
+    var rng = hashSeed(ticker + "_" + scenarioId + "_shap_" + f + "_v2");
+    var raw = (rng()*200 - 100);
+    return {feature:f, value:valMap[f], shap:+raw.toFixed(2)};
+  });
+  rows.sort(function(a,b){ return Math.abs(b.shap) - Math.abs(a.shap); });
+  return rows;
+}
+function shapImpactLabel(v){
+  var a = Math.abs(v);
+  if(a >= 70) return "High impact";
+  if(a >= 35) return "Moderate impact";
+  return "Minimal impact";
+}
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+var STATE = {
+  loggedIn:false,
+  user:{username:'', role:''},
+  activeTab:'overview',
+  scenarios: genScenarios(60),
+  selectedScenarios: new Set(),
+  scenarioNumberChoice: 50,
+  stressCompany: '',
+  stressResult: null,      // {ticker, scenarioIds, single:{...}, multi:{...}}
+  portfolio: [],           // {ticker, weight}
+  portfolioCompanyChoice: '',
+  portfolioWeightChoice: 10,
+  portfolioResult: null,
+  expandedPortfolioCompanies: {},
+  batchJobs: [],
+  testsToday: 15,
+  riskLimits: {singlePositionMax:2.0, sectorMax:15.0},
+  lastBreaches: null,
+  reportType: 'CCAR',
+  reportPeriod: 'Q4 2025',
+  currentReport: null,
+  users: [
+    {username:'auditor', email:'auditor@financialstress.com', role:'AUDITOR', lastLogin:'Never', active:true},
+    {username:'viewer', email:'viewer@financialstress.com', role:'VIEWER', lastLogin:'12/11/2025, 9:21:07 PM', active:true},
+    {username:'analyst', email:'analyst@financialstress.com', role:'ANALYST', lastLogin:'Never', active:true},
+    {username:'risk_manager', email:'risk.manager@financialstress.com', role:'RISK MANAGER', lastLogin:'Never', active:true},
+    {username:'admin', email:'admin@financialstress.com', role:'ADMIN', lastLogin:'12/11/2025, 10:31:41 PM', active:true}
+  ],
+  modal:null
+};
+
+/* ============================================================
+   TOP LEVEL RENDER
+   ============================================================ */
+function render(){
+  var root = document.getElementById('root');
+  if(!STATE.loggedIn){
+    document.title = "Login - Financial Stress Test Platform";
+    root.innerHTML = renderLogin();
+  } else {
+    document.title = "Financial Stress Test Platform";
+    root.innerHTML = renderAppShell();
+  }
+  var m = document.getElementById('modalRoot');
+  if(m && STATE.modal){ m.innerHTML = STATE.modal; }
+}
+
+/* ---------- LOGIN ---------- */
+function renderLogin(){
+  return '' +
+  '<div class="login-wrap">' +
+    '<div class="login-card">' +
+      '<div class="login-header">' +
+        '<h1>Financial Stress Test Platform</h1>' +
+        '<p>Enterprise Risk Analytics System</p>' +
+      '</div>' +
+      '<div class="login-body">' +
+        '<div class="field">' +
+          '<label>Username</label>' +
+          '<input type="text" id="loginUsername" placeholder="">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>Password</label>' +
+          '<input type="password" id="loginPassword" placeholder="" onkeydown="if(event.key===\'Enter\')doLogin()">' +
+        '</div>' +
+        '<button class="btn btn-primary btn-block" onclick="doLogin()">Sign In</button>' +
+      '</div>' +
+      '<div class="demo-box">' +
+        '<div class="dtitle">Demo Accounts:</div>' +
+        '<div class="drow"><b>Admin:</b> <code>admin</code> / <code>admin123</code></div>' +
+        '<div class="drow"><b>Risk Manager:</b> <code>risk_manager</code> / <code>risk123</code></div>' +
+        '<div class="drow"><b>Analyst:</b> <code>analyst</code> / <code>analyst123</code></div>' +
+        '<div class="drow"><b>Viewer:</b> <code>viewer</code> / <code>viewer123</code></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function doLogin(){
+  var u = document.getElementById('loginUsername').value.trim();
+  var p = document.getElementById('loginPassword').value.trim();
+  var match = null;
+  for(var i=0;i<DEMO_USERS.length;i++){
+    if(DEMO_USERS[i].username===u && DEMO_USERS[i].password===p){ match = DEMO_USERS[i]; break; }
+  }
+  if(!match){
+    alert("Invalid username or password. Try one of the demo accounts shown below.");
+    return;
+  }
+  STATE.loggedIn = true;
+  STATE.user = {username:match.username, role:match.role};
+  STATE.activeTab = 'overview';
+  render();
+}
+
+function doLogout(){
+  STATE.loggedIn = false;
+  STATE.user = {username:'', role:''};
+  render();
+}
+
+/* ---------- APP SHELL ---------- */
+var TABS = [
+  {id:'overview', label:'Overview'},
+  {id:'scenarios', label:'Scenarios'},
+  {id:'stresstest', label:'Stress Test'},
+  {id:'portfolio', label:'Portfolio'},
+  {id:'batch', label:'Batch Processing'},
+  {id:'risklimits', label:'Risk Limits'},
+  {id:'reports', label:'Reports'},
+  {id:'users', label:'Users'}
+];
+
+function renderAppShell(){
+  var tabsHtml = TABS.map(function(t){
+    if(t.id==='users' && STATE.user.role !== 'ADMIN') return '';
+    var cls = 'nav-tab' + (STATE.activeTab===t.id ? ' active' : '');
+    return '<div class="' + cls + '" onclick="switchTab(\'' + t.id + '\')">' + esc(t.label) + '</div>';
+  }).join('');
+
+  var content = '';
+  switch(STATE.activeTab){
+    case 'overview': content = renderOverviewTab(); break;
+    case 'scenarios': content = renderScenariosTab(); break;
+    case 'stresstest': content = renderStressTestTab(); break;
+    case 'portfolio': content = renderPortfolioTab(); break;
+    case 'batch': content = renderBatchTab(); break;
+    case 'risklimits': content = renderRiskLimitsTab(); break;
+    case 'reports': content = renderReportsTab(); break;
+    case 'users': content = renderUsersTab(); break;
+    default: content = renderOverviewTab();
+  }
+
+  return '' +
+  '<div class="app-header">' +
+    '<div>' +
+      '<h1>Financial Stress Test Platform</h1>' +
+      '<p class="sub">Enterprise Risk Analytics</p>' +
+    '</div>' +
+    '<div class="header-right">' +
+      '<span>User: <b>' + esc(STATE.user.username) + '</b></span>' +
+      '<span>Role: <b>' + esc(STATE.user.role) + '</b></span>' +
+      '<button class="btn btn-header btn-sm" onclick="doLogout()">Logout</button>' +
+    '</div>' +
+  '</div>' +
+  '<div class="nav-tabs">' + tabsHtml + '</div>' +
+  '<div class="content">' + content + '</div>' +
+  '<div id="modalRoot"></div>';
+}
+
+function switchTab(id){
+  STATE.activeTab = id;
+  render();
+}
+/* ============================================================
+   OVERVIEW TAB
+   ============================================================ */
+function renderOverviewTab(){
+  var activeJobs = STATE.batchJobs.filter(function(j){ return j.status==='RUNNING'; }).length;
+  var breachCount = STATE.lastBreaches ? STATE.lastBreaches.length : 0;
+  var usersCount = STATE.users.length;
+
+  return '' +
+  '<h1 class="page-title">System Overview</h1>' +
+  '<p class="page-sub">Real-time monitoring</p>' +
+  '<div class="grid-4" style="margin-bottom:24px;">' +
+    '<div class="stat-card"><div class="stat-label">Active Jobs</div><div class="stat-value">' + activeJobs + '</div><div class="stat-sub">Running</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Tests Today</div><div class="stat-value">' + STATE.testsToday + '</div><div class="stat-sub">Completed</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Breaches</div><div class="stat-value">' + breachCount + '</div><div class="stat-sub">Violations</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Users</div><div class="stat-value">' + usersCount + '</div><div class="stat-sub">Active</div></div>' +
+  '</div>' +
+  '<div class="card">' +
+    '<div class="toolbar" style="margin-bottom:8px;">' +
+      '<h3 style="margin:0;">System Status</h3>' +
+      '<button class="btn btn-outline btn-sm" onclick="render()">Refresh</button>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    '<div class="selected-banner" style="margin:0;">' +
+      '<div><b>System:</b> operational</div>' +
+      '<div><b>Companies:</b> 84</div>' +
+      '<div><b>Scenarios:</b> ' + STATE.scenarios.length + '</div>' +
+    '</div>' +
+  '</div>';
+}
+/* ============================================================
+   SCENARIOS TAB
+   ============================================================ */
+function renderScenariosTab(){
+  var cardsHtml;
+  if(STATE.scenarios.length===0){
+    cardsHtml = '<div class="empty-state">No scenarios available. Generate scenarios with VAE to get started.</div>';
+  } else {
+    cardsHtml = '<div class="scenario-grid">' + STATE.scenarios.map(renderScenarioCard).join('') + '</div>';
+  }
+
+  var badgeCls = {BASELINE:'badge-green', ADVERSE:'badge-amber', SEVERE:'badge-red'};
+
+  return '' +
+  '<h1 class="page-title">Scenario Selection</h1>' +
+  '<p class="page-sub">Generate and select scenarios</p>' +
+  '<div class="info-banner"><b>Instructions:</b> Generate scenarios with VAE, then click to select</div>' +
+  '<div class="card">' +
+    '<h3>Generate Scenarios (VAE)</h3>' +
+    '<div class="card-divider"></div>' +
+    '<div class="form-row">' +
+      '<div><label class="form-label">Number</label>' +
+        '<select class="form-input" id="scenarioNumberSelect">' +
+          [10,50,100,200].map(function(n){
+            return '<option value="'+n+'"'+(n===STATE.scenarioNumberChoice?' selected':'')+'>'+n+'</option>';
+          }).join('') +
+        '</select>' +
+      '</div>' +
+      '<div></div>' +
+      '<div><button class="btn btn-primary" style="width:100%;" onclick="generateScenarios()">Generate with VAE</button></div>' +
+    '</div>' +
+  '</div>' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">Available Scenarios</h3>' +
+      '<div class="tools">' +
+        '<span class="selected-count">Selected: ' + STATE.selectedScenarios.size + '</span>' +
+        '<button class="btn btn-outline btn-sm" onclick="clearScenarioSelection()">Clear Selection</button>' +
+        '<button class="btn btn-outline btn-sm" onclick="refreshScenarios()">Refresh</button>' +
+        '<button class="btn btn-danger btn-sm" onclick="clearAllScenarios()">Clear All</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    cardsHtml +
+  '</div>';
+}
+
+function renderScenarioCard(s){
+  var badgeCls = {BASELINE:'badge-green', ADVERSE:'badge-amber', SEVERE:'badge-red'}[s.severity];
+  var sel = STATE.selectedScenarios.has(s.id) ? ' selected' : '';
+  return '' +
+  '<div class="scenario-card' + sel + '" onclick="toggleScenario(' + s.id + ')">' +
+    '<div class="sc-head"><b>Scenario ' + s.id + '</b><span class="badge ' + badgeCls + '">' + s.severity + '</span></div>' +
+    '<div class="scenario-row"><span>GDP</span><span>$' + s.gdp.toFixed(1) + 'T</span></div>' +
+    '<div class="scenario-row"><span>VIX</span><span>' + s.vix.toFixed(1) + '</span></div>' +
+    '<div class="scenario-row"><span>Unemployment</span><span>' + fmtPct1(s.unemployment) + '</span></div>' +
+    '<div class="scenario-row"><span>Fed Rate</span><span>' + fmtPct2(s.fedRate) + '</span></div>' +
+  '</div>';
+}
+
+function generateScenarios(){
+  var n = parseInt(document.getElementById('scenarioNumberSelect').value, 10);
+  STATE.scenarioNumberChoice = n;
+  STATE.scenarios = genScenarios(n);
+  STATE.selectedScenarios = new Set();
+  render();
+}
+function refreshScenarios(){
+  STATE.scenarios = genScenarios(STATE.scenarios.length || STATE.scenarioNumberChoice);
+  STATE.selectedScenarios = new Set();
+  render();
+}
+function clearAllScenarios(){
+  STATE.scenarios = [];
+  STATE.selectedScenarios = new Set();
+  render();
+}
+function clearScenarioSelection(){
+  STATE.selectedScenarios = new Set();
+  render();
+}
+function toggleScenario(id){
+  if(STATE.selectedScenarios.has(id)) STATE.selectedScenarios.delete(id);
+  else STATE.selectedScenarios.add(id);
+  render();
+}
+/* ============================================================
+   SHARED: company dropdown + selected scenario banner
+   ============================================================ */
+function companyOptionsHtml(selectedTicker){
+  return '<option value="">-- Select --</option>' + COMPANIES.map(function(c){
+    var sel = c.ticker===selectedTicker ? ' selected' : '';
+    return '<option value="'+c.ticker+'"'+sel+'>'+c.ticker+' ('+c.sector+')</option>';
+  }).join('');
+}
+function selectedScenarioIdsSorted(){
+  return Array.from(STATE.selectedScenarios).sort(function(a,b){return a-b;});
+}
+function selectedScenariosBanner(){
+  var ids = selectedScenarioIdsSorted();
+  return '<div class="selected-banner"><b>Selected:</b> ' + ids.length + ' scenario(s): ' + (ids.length? ids.join(', ') : '&mdash;') + '</div>';
+}
+
+/* ============================================================
+   STRESS TEST TAB
+   ============================================================ */
+function renderStressTestTab(){
+  var resultsHtml = '';
+  if(STATE.stressResult){
+    if(STATE.stressResult.scenarioIds.length === 1){
+      resultsHtml = renderSingleStressResult(STATE.stressResult);
+    } else {
+      resultsHtml = renderMultiStressResult(STATE.stressResult);
+    }
+  }
+
+  return '' +
+  '<h1 class="page-title">Stress Test</h1>' +
+  '<p class="page-sub">Test one company</p>' +
+  '<div class="card">' +
+    '<h3>Configuration</h3>' +
+    '<div class="card-divider"></div>' +
+    '<label class="form-label">Select Company</label>' +
+    '<select class="form-input" id="stressCompanySelect" onchange="STATE.stressCompany=this.value;">' +
+      companyOptionsHtml(STATE.stressCompany) +
+    '</select>' +
+    selectedScenariosBanner() +
+    '<button class="btn btn-primary" onclick="executeStressTest()">Execute Stress Test</button>' +
+  '</div>' +
+  resultsHtml;
+}
+
+function executeStressTest(){
+  var ticker = document.getElementById('stressCompanySelect').value;
+  if(!ticker){ alert("Please select a company."); return; }
+  var ids = selectedScenarioIdsSorted();
+  if(ids.length===0){ alert("Please select at least one scenario from the Scenarios tab."); return; }
+  STATE.stressCompany = ticker;
+  STATE.stressResult = {ticker:ticker, scenarioIds:ids};
+  STATE.testsToday += 1;
+  render();
+}
+
+function renderSingleStressResult(res){
+  var ticker = res.ticker;
+  var sid = res.scenarioIds[0];
+  var scenario = findScenario(sid);
+  var score = computeRisk(ticker, sid);
+  var cat = riskCategory(score);
+  var pred = computePredictions(ticker, sid);
+  var shap = computeShap(ticker, sid);
+
+  var revBadge = impactBadge('revenue', pred.revenue.change);
+  var epsBadge = impactBadge('eps', pred.eps.change);
+  var deBadge = impactBadge('de', pred.de.change);
+  var pmBadge = impactBadge('pm', pred.pm.change);
+  var stockBadge = impactBadge('stock', pred.stock.predicted);
+
+  var metricsRows = '' +
+    metricRow('Revenue', fmtMoneyB(pred.revenue.current), fmtMoneyB(pred.revenue.predicted), fmtPct1(pred.revenue.change), revBadge, pred.revenue.change<0) +
+    metricRow('EPS', '$'+pred.eps.current.toFixed(2), '$'+pred.eps.predicted.toFixed(2), fmtPct1(pred.eps.change), epsBadge, pred.eps.change<0) +
+    metricRow('Debt/Equity', pred.de.current.toFixed(2), pred.de.predicted.toFixed(2), fmtPct1(pred.de.change), deBadge, pred.de.change>0) +
+    metricRow('Profit Margin', pred.pm.current.toFixed(1)+'%', pred.pm.predicted.toFixed(1)+'%', fmtPct1(pred.pm.change), pmBadge, pred.pm.change<0) +
+    metricRow('Stock Return', '-', pred.stock.predicted.toFixed(1)+'%', (pred.stock.predicted<0?'NEGATIVE':'POSITIVE'), stockBadge, pred.stock.predicted<0);
+
+  var shapRows = shap.map(function(r){
+    var isNeg = r.shap < 0;
+    var pct = clamp(Math.abs(r.shap), 2, 100);
+    return '<tr><td>'+esc(r.feature)+'</td><td>'+ (Math.abs(r.value)>=1000 ? r.value.toFixed(2) : r.value.toFixed(2)) +'</td>' +
+      '<td><div class="impact-bar-wrap"><div class="impact-bar-track"><div class="impact-bar-fill '+(isNeg?'neg':'pos')+'" style="width:'+pct+'%;"></div></div></div></td>' +
+      '<td>'+ (r.shap>=0?'+':'') + r.shap.toFixed(2) +'</td><td>'+ shapImpactLabel(r.shap) +'</td></tr>';
+  }).join('');
+
+  return '' +
+  '<div class="card">' +
+    '<div class="toolbar" style="margin-bottom:22px;">' +
+      '<h3 style="margin:0;">Results: ' + ticker + '</h3>' +
+      '<span class="badge badge-blue">SCENARIO ' + sid + '</span>' +
+    '</div>' +
+    '<div class="risk-box r' + cat.cls + '">' +
+      '<div class="rscore">' + score.toFixed(1) + '</div>' +
+      '<div class="rlabel">' + cat.label + ' RISK</div>' +
+      '<div class="rdesc">' + riskDesc(cat.cls) + '</div>' +
+    '</div>' +
+    '<h3 style="margin-top:30px;">Financial Metrics: Predicted vs Current</h3>' +
+    '<table class="data-table">' +
+      '<tr><th>Metric</th><th>Current</th><th>Predicted</th><th>Change</th><th>Impact</th></tr>' +
+      metricsRows +
+    '</table>' +
+    '<h3 style="margin-top:30px;">SHAP Risk Explanation</h3>' +
+    '<p class="page-sub" style="margin-top:-8px;">SHAP values show which features contributed most to the risk score</p>' +
+    '<table class="data-table">' +
+      '<tr><th>Feature</th><th>Value</th><th>Impact Bar</th><th>SHAP Value</th><th></th></tr>' +
+      shapRows +
+    '</table>' +
+  '</div>';
+}
+
+function metricRow(name, current, predicted, changeStr, badge, isBad){
+  var colorCls = isBad ? 'risk-text-critical' : 'risk-text-low';
+  return '<tr><td><b>'+name+'</b></td><td>'+current+'</td><td>'+predicted+'</td>' +
+    '<td class="'+colorCls+'">'+changeStr+'</td>' +
+    '<td><span class="badge badge-'+badge.cls+'">'+badge.label+'</span></td></tr>';
+}
+
+function renderMultiStressResult(res){
+  var ticker = res.ticker;
+  var ids = res.scenarioIds;
+  var scores = ids.map(function(id){ return computeRisk(ticker, id); });
+  var best = Math.min.apply(null, scores);
+  var worst = Math.max.apply(null, scores);
+  var average = +avg(scores).toFixed(1);
+  var bestIdx = scores.indexOf(best);
+  var worstIdx = scores.indexOf(worst);
+
+  var rowsHtml = ids.map(function(id, i){
+    var s = findScenario(id);
+    return '<div class="sr-row"><span>Scenario ' + id + ': ' + s.name + '</span><b>' + scores[i].toFixed(1) + '</b></div>';
+  }).join('');
+
+  return '' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">Multi-Scenario: ' + ticker + '</h3>' +
+      '<span class="badge badge-blue">' + ids.length + ' SCENARIOS</span>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    '<div class="grid-3">' +
+      '<div class="mini-box mgreen"><div class="mlabel">Best Case</div><div class="mscore">' + best.toFixed(1) + '</div><div class="msub">Scenario ' + ids[bestIdx] + '</div></div>' +
+      '<div class="mini-box mblue"><div class="mlabel">Average</div><div class="mscore">' + average.toFixed(1) + '</div><div class="msub">' + ids.length + ' Scenarios</div></div>' +
+      '<div class="mini-box morange"><div class="mlabel">Worst Case</div><div class="mscore">' + worst.toFixed(1) + '</div><div class="msub">Scenario ' + ids[worstIdx] + '</div></div>' +
+    '</div>' +
+    '<h3 style="margin-top:26px;">Individual Results (Click to Expand)</h3>' +
+    '<div class="scenario-results-list">' + rowsHtml + '</div>' +
+  '</div>';
+}
+/* ============================================================
+   PORTFOLIO TAB
+   ============================================================ */
+function totalPortfolioWeight(){
+  return STATE.portfolio.reduce(function(a,p){ return a+p.weight; }, 0);
+}
+
+function renderPortfolioTab(){
+  var totalWeight = totalPortfolioWeight();
+  var isBalanced = Math.abs(totalWeight-100) < 0.01;
+
+  var portfolioRows;
+  if(STATE.portfolio.length===0){
+    portfolioRows = '<tr><td colspan="4"><div class="empty-state">No companies</div></td></tr>';
+  } else {
+    portfolioRows = STATE.portfolio.map(function(p){
+      var c = getCompany(p.ticker);
+      return '<tr><td><b>'+p.ticker+'</b></td><td>'+p.weight.toFixed(1)+'%</td><td>'+c.sector+'</td>' +
+        '<td><button class="btn btn-danger btn-sm" onclick="removeFromPortfolio(\''+p.ticker+'\')">Remove</button></td></tr>';
+    }).join('');
+  }
+  var totalRow = '<tr><td class="tot-row">TOTAL</td><td class="tot-row">'+totalWeight.toFixed(1)+'%</td>' +
+    '<td class="tot-row" colspan="2">' + (STATE.portfolio.length ? (isBalanced ? '<span class="risk-text-low">&#10003; Balanced</span>' : '<span class="risk-text-critical">&#9888; Must=100%</span>') : '') + '</td></tr>';
+
+  var resultsHtml = STATE.portfolioResult ? renderPortfolioResults(STATE.portfolioResult) : '';
+
+  return '' +
+  '<h1 class="page-title">Portfolio Analysis</h1>' +
+  '<p class="page-sub">Multi-company weighted risk</p>' +
+  '<div class="card">' +
+    '<h3>Build Portfolio</h3>' +
+    '<div class="card-divider"></div>' +
+    '<div class="form-row">' +
+      '<div><label class="form-label">Company</label>' +
+        '<select class="form-input" id="portfolioCompanySelect">' + companyOptionsHtml('') + '</select>' +
+      '</div>' +
+      '<div><label class="form-label">Weight (%)</label>' +
+        '<input class="form-input" id="portfolioWeightInput" type="number" value="' + STATE.portfolioWeightChoice + '">' +
+      '</div>' +
+      '<div><button class="btn btn-primary" style="width:100%;" onclick="addToPortfolio()">Add</button></div>' +
+    '</div>' +
+  '</div>' +
+  '<div class="card">' +
+    '<h3>Portfolio</h3>' +
+    '<div class="card-divider"></div>' +
+    '<table class="data-table">' +
+      '<tr><th>Company</th><th>Weight</th><th>Sector</th><th>Action</th></tr>' +
+      portfolioRows +
+      (STATE.portfolio.length ? totalRow : '') +
+    '</table>' +
+  '</div>' +
+  '<button class="btn btn-primary" onclick="runPortfolioAnalysis()" style="margin-bottom:24px;">Run Analysis</button>' +
+  resultsHtml;
+}
+
+function addToPortfolio(){
+  var ticker = document.getElementById('portfolioCompanySelect').value;
+  var weight = parseFloat(document.getElementById('portfolioWeightInput').value);
+  if(!ticker){ alert("Please select a company."); return; }
+  if(!weight || weight<=0){ alert("Please enter a valid weight percentage."); return; }
+  for(var i=0;i<STATE.portfolio.length;i++){
+    if(STATE.portfolio[i].ticker===ticker){ alert(ticker + " is already in the portfolio."); return; }
+  }
+  STATE.portfolio.push({ticker:ticker, weight:weight});
+  STATE.portfolioResult = null;
+  render();
+}
+function removeFromPortfolio(ticker){
+  STATE.portfolio = STATE.portfolio.filter(function(p){ return p.ticker!==ticker; });
+  STATE.portfolioResult = null;
+  render();
+}
+
+function computePortfolioResult(){
+  var scenarioIds = selectedScenarioIdsSorted();
+  var companiesDetail = STATE.portfolio.map(function(p){
+    var risks = scenarioIds.map(function(sid){ return computeRisk(p.ticker, sid); });
+    var a = +avg(risks).toFixed(1);
+    var best = +Math.min.apply(null, risks).toFixed(1);
+    var worst = +Math.max.apply(null, risks).toFixed(1);
+    var contribution = +(a * p.weight/100).toFixed(1);
+    var c = getCompany(p.ticker);
+    var scenarioResults = scenarioIds.map(function(sid,i){ return {scenario:findScenario(sid), risk:risks[i]}; });
+    return {ticker:p.ticker, sector:c.sector, weight:p.weight, avg:a, best:best, worst:worst, contribution:contribution, scenarioResults:scenarioResults};
+  });
+  var totalRisk = +companiesDetail.reduce(function(a,c){ return a+c.contribution; },0).toFixed(1);
+
+  var sectorMap = {};
+  companiesDetail.forEach(function(c){
+    if(!sectorMap[c.sector]) sectorMap[c.sector] = {weight:0, tickers:[], weightedSum:0};
+    sectorMap[c.sector].weight += c.weight;
+    sectorMap[c.sector].tickers.push(c.ticker);
+    sectorMap[c.sector].weightedSum += c.avg * c.weight;
+  });
+  var sectors = Object.keys(sectorMap).map(function(sector){
+    var d = sectorMap[sector];
+    return {sector:sector, weight:+d.weight.toFixed(1), tickers:d.tickers, risk:+(d.weightedSum/d.weight).toFixed(1)};
+  });
+
+  return {companiesDetail:companiesDetail, totalRisk:totalRisk, sectors:sectors, scenarioCount:scenarioIds.length, companyCount:companiesDetail.length};
+}
+
+function runPortfolioAnalysis(){
+  if(STATE.portfolio.length===0){ alert("Please add at least one company to the portfolio."); return; }
+  var scenarioIds = selectedScenarioIdsSorted();
+  if(scenarioIds.length===0){ alert("Please select at least one scenario from the Scenarios tab."); return; }
+  var totalWeight = totalPortfolioWeight();
+  if(Math.abs(totalWeight-100) > 0.01){ alert("Portfolio weights must total 100%. Current total: " + totalWeight.toFixed(1) + "%"); return; }
+  STATE.portfolioResult = computePortfolioResult();
+  STATE.expandedPortfolioCompanies = {};
+  STATE.testsToday += STATE.portfolio.length * scenarioIds.length;
+  render();
+}
+
+function renderPortfolioResults(res){
+  var cat = riskCategory(res.totalRisk);
+  var breakdownRows = res.companiesDetail.map(function(c){
+    var rcat = riskCategory(c.avg);
+    return '<tr><td><b>'+c.ticker+'</b></td><td>'+c.sector+'</td><td>'+c.weight.toFixed(1)+'%</td>' +
+      '<td class="risk-text-'+rcat.cls+'">'+c.avg.toFixed(1)+'</td><td><b>'+c.contribution.toFixed(1)+'</b></td></tr>';
+  }).join('');
+  var totalRow = '<tr><td class="tot-row" colspan="4">TOTAL PORTFOLIO RISK:</td><td class="tot-row risk-text-'+cat.cls+'">'+res.totalRisk.toFixed(1)+'</td></tr>';
+
+  var sectorCards = res.sectors.map(function(s){
+    var scat = riskCategory(s.risk);
+    return '<div class="sector-card"><div class="sc-title">'+s.sector+'</div>' +
+      '<div class="sc-score risk-text-'+scat.cls+'">'+s.risk.toFixed(1)+'</div>' +
+      '<div class="sc-meta">Weight: '+s.weight.toFixed(1)+'% | '+s.tickers.length+' companies</div>' +
+      '<div class="sc-meta">'+s.tickers.join(', ')+'</div></div>';
+  }).join('');
+
+  var companyDetails = res.companiesDetail.map(function(c){
+    var expanded = !!STATE.expandedPortfolioCompanies[c.ticker];
+    var bodyHtml = '';
+    if(expanded){
+      var rowsHtml = c.scenarioResults.map(function(r){
+        return '<div class="sr-row"><span>Scenario ' + r.scenario.id + ': ' + r.scenario.name + '</span><b>' + r.risk.toFixed(1) + '</b></div>';
+      }).join('');
+      bodyHtml = '<div class="company-detail-body">' +
+        '<div class="grid-3">' +
+          '<div class="mini-box mgreen"><div class="mlabel">Best</div><div class="mscore">'+c.best.toFixed(1)+'</div></div>' +
+          '<div class="mini-box mblue"><div class="mlabel">Avg</div><div class="mscore">'+c.avg.toFixed(1)+'</div></div>' +
+          '<div class="mini-box morange"><div class="mlabel">Worst</div><div class="mscore">'+c.worst.toFixed(1)+'</div></div>' +
+        '</div>' +
+        '<h3 style="margin-top:22px;">Individual Scenario Results</h3>' +
+        '<div class="scenario-results-list">' + rowsHtml + '</div>' +
+      '</div>';
+    }
+    return '<div class="company-detail">' +
+      '<div class="company-detail-head" onclick="togglePortfolioCompany(\''+c.ticker+'\')">' +
+        '<div class="cdh-left"><b>'+c.ticker+'</b><span>'+c.sector+'  Weight: '+c.weight.toFixed(0)+'%</span><span class="chevron">'+(expanded?'&#9650;':'&#9660;')+'</span></div>' +
+        '<div class="cdh-right">Risk Contribution: <b>'+c.contribution.toFixed(1)+'</b></div>' +
+      '</div>' +
+      bodyHtml +
+    '</div>';
+  }).join('');
+
+  return '' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">Portfolio Results</h3>' +
+      '<span class="badge badge-blue">' + res.companyCount + ' COMPANIES &times; ' + res.scenarioCount + ' SCENARIOS</span>' +
+    '</div>' +
+    '<div class="risk-box r' + cat.cls + '">' +
+      '<div class="rscore">' + res.totalRisk.toFixed(1) + '</div>' +
+      '<div class="rlabel">Portfolio Weighted Risk</div>' +
+      '<div class="rdesc">' + cat.label + ' Risk Level</div>' +
+    '</div>' +
+    '<h3 style="margin-top:30px;">Portfolio Breakdown</h3>' +
+    '<table class="data-table">' +
+      '<tr><th>Company</th><th>Sector</th><th>Weight</th><th>Risk</th><th>Contribution</th></tr>' +
+      breakdownRows + totalRow +
+    '</table>' +
+    '<h3 style="margin-top:30px;">Sector Exposure Analysis</h3>' +
+    sectorCards +
+    '<h3 style="margin-top:30px;">Individual Company Details (Click to Expand)</h3>' +
+    '<p class="page-sub" style="margin-top:-8px;">View detailed metrics and SHAP explanations for each company</p>' +
+    companyDetails +
+  '</div>';
+}
+
+function togglePortfolioCompany(ticker){
+  STATE.expandedPortfolioCompanies[ticker] = !STATE.expandedPortfolioCompanies[ticker];
+  render();
+}
+/* ============================================================
+   BATCH PROCESSING TAB
+   ============================================================ */
+function renderBatchTab(){
+  var jobsRows;
+  if(STATE.batchJobs.length===0){
+    jobsRows = '<tr><td colspan="6"><div class="empty-state">No jobs yet. Schedule a job above.</div></td></tr>';
+  } else {
+    jobsRows = STATE.batchJobs.slice().reverse().map(function(j){
+      var statusBadge = j.status==='COMPLETED' ? 'badge-green' : (j.status==='RUNNING' ? 'badge-amber' : 'badge-blue');
+      var pct = Math.round((j.progress||0)*100);
+      return '<tr><td><b>'+esc(j.name)+'</b></td>' +
+        '<td><span class="badge '+statusBadge+'">'+j.status+'</span></td>' +
+        '<td><div class="impact-bar-track" style="width:140px;"><div class="impact-bar-fill neg" style="width:'+pct+'%;"></div></div><div style="font-size:12px;color:var(--text-light);margin-top:4px;">'+pct+'.0%</div></td>' +
+        '<td>'+j.completedTests+' / '+j.totalTests+'</td>' +
+        '<td>'+esc(j.createdBy)+'</td>' +
+        '<td>'+(j.status==='COMPLETED' ? '<button class="btn btn-primary btn-sm" onclick="viewBatchResults(\''+j.id+'\')">View Results</button>' : '&mdash;')+'</td></tr>';
+    }).join('');
+  }
+
+  return '' +
+  '<h1 class="page-title">Batch Processing</h1>' +
+  '<p class="page-sub">Automated testing</p>' +
+  '<div class="card">' +
+    '<h3>Schedule Job</h3>' +
+    '<div class="card-divider"></div>' +
+    '<label class="form-label">Job Name</label>' +
+    '<input class="form-input" id="batchJobName" placeholder="" style="margin-bottom:20px;">' +
+    '<div class="form-row2">' +
+      '<div><label class="form-label">Companies (CSV)</label><input class="form-input" id="batchCompanies" placeholder="AAPL,MSFT"></div>' +
+      '<div><label class="form-label">Scenarios (CSV)</label><input class="form-input" id="batchScenarios" placeholder="1,2,3"></div>' +
+    '</div>' +
+    '<div style="height:20px;"></div>' +
+    '<button class="btn btn-primary" onclick="scheduleBatchJob()">Schedule</button>' +
+  '</div>' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">Jobs</h3>' +
+      '<button class="btn btn-outline btn-sm" onclick="render()">Refresh</button>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    '<table class="data-table">' +
+      '<tr><th>Job Name</th><th>Status</th><th>Progress</th><th>Tests</th><th>Created By</th><th>Results</th></tr>' +
+      jobsRows +
+    '</table>' +
+  '</div>';
+}
+
+function scheduleBatchJob(){
+  var name = document.getElementById('batchJobName').value.trim() || ('Job ' + (STATE.batchJobs.length+1));
+  var companiesRaw = document.getElementById('batchCompanies').value.trim();
+  var scenariosRaw = document.getElementById('batchScenarios').value.trim();
+  if(!companiesRaw || !scenariosRaw){ alert("Please provide both Companies and Scenarios (CSV)."); return; }
+  var companies = companiesRaw.split(',').map(function(s){ return s.trim().toUpperCase(); }).filter(Boolean);
+  var scenarioIds = scenariosRaw.split(',').map(function(s){ return parseInt(s.trim(),10); }).filter(function(n){ return !isNaN(n); });
+
+  var validCompanies = companies.filter(function(t){ return !!getCompany(t); });
+  if(validCompanies.length===0){ alert("No valid company tickers found."); return; }
+  var validScenarios = scenarioIds.filter(function(id){ return !!findScenario(id); });
+  if(validScenarios.length===0){ alert("No valid scenario IDs found."); return; }
+
+  var totalTests = validCompanies.length * validScenarios.length;
+  var id = uuidv4();
+  var job = {
+    id:id, name:name, companies:validCompanies, scenarios:validScenarios,
+    status:'RUNNING', progress:0, totalTests:totalTests, completedTests:0,
+    createdBy:STATE.user.username
+  };
+  STATE.batchJobs.push(job);
+
+  alert("Batch job scheduled!\nID: " + id + "\nTotal tests: " + totalTests);
+
+  document.getElementById('batchJobName').value='';
+  document.getElementById('batchCompanies').value='';
+  document.getElementById('batchScenarios').value='';
+  render();
+  runBatchJobProgress(id);
+}
+
+function runBatchJobProgress(id){
+  var job = STATE.batchJobs.find(function(j){ return j.id===id; });
+  if(!job) return;
+  var step = function(){
+    job.progress = Math.min(1, job.progress + 0.25 + Math.random()*0.15);
+    job.completedTests = Math.round(job.progress * job.totalTests);
+    if(job.progress >= 1){
+      job.progress = 1;
+      job.completedTests = job.totalTests;
+      job.status = 'COMPLETED';
+      STATE.testsToday += job.totalTests;
+      if(STATE.activeTab==='batch' || STATE.activeTab==='overview') render();
+      return;
+    }
+    if(STATE.activeTab==='batch' || STATE.activeTab==='overview') render();
+    setTimeout(step, 500);
+  };
+  setTimeout(step, 500);
+}
+
+function viewBatchResults(id){
+  var job = STATE.batchJobs.find(function(j){ return j.id===id; });
+  if(!job) return;
+  var rows = '';
+  job.companies.forEach(function(t){
+    job.scenarios.forEach(function(sid){
+      var score = computeRisk(t, sid);
+      var cat = riskCategory(score);
+      rows += '<tr><td><b>'+t+'</b></td><td>Scenario '+sid+'</td><td class="risk-text-'+cat.cls+'">'+score.toFixed(1)+'</td><td><span class="badge badge-'+({low:'green',moderate:'amber',high:'orange',critical:'red'}[cat.cls])+'">'+cat.label+'</span></td></tr>';
+    });
+  });
+  STATE.modal = '' +
+    '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">' +
+      '<div class="modal-box">' +
+        '<h3>Batch Results: ' + esc(job.name) + '</h3>' +
+        '<table class="data-table"><tr><th>Company</th><th>Scenario</th><th>Risk Score</th><th>Category</th></tr>' + rows + '</table>' +
+        '<div class="modal-close-row"><button class="btn btn-outline" onclick="closeModal()">Close</button></div>' +
+      '</div>' +
+    '</div>';
+  render();
+}
+function closeModal(){
+  STATE.modal = null;
+  render();
+}
+/* ============================================================
+   RISK LIMITS TAB
+   ============================================================ */
+function renderRiskLimitsTab(){
+  var breachesHtml;
+  if(STATE.lastBreaches===null){
+    breachesHtml = '<div class="selected-banner" style="margin-top:0;">Click "Check Now"</div>';
+  } else if(STATE.lastBreaches.length===0){
+    breachesHtml = '<div class="selected-banner" style="margin-top:0; border-left-color:var(--green);"><span class="risk-text-low">No breaches detected. Portfolio is within configured limits.</span></div>';
+  } else {
+    breachesHtml = '<div class="breach-alert">&#9888; ' + STATE.lastBreaches.length + ' BREACH(ES) DETECTED</div>' +
+      STATE.lastBreaches.map(function(b){
+        return '<div class="breach-box"><div class="bt">' + esc(b.type) + ' - <span class="sev">' + esc(b.severity) + '</span></div>' +
+          '<div class="bline">' + esc(b.subject) + ': ' + b.value.toFixed(0) + '</div>' +
+          '<div class="bline">Limit: ' + b.limit + '</div>' +
+          '<div class="bline">Action: ' + esc(b.action) + '</div></div>';
+      }).join('');
+  }
+
+  return '' +
+  '<h1 class="page-title">Risk Limits</h1>' +
+  '<p class="page-sub">Configure limits</p>' +
+  '<div class="card">' +
+    '<h3>Configure</h3>' +
+    '<div class="card-divider"></div>' +
+    '<div class="form-row2">' +
+      '<div><label class="form-label">Single Position Max (%)</label><input class="form-input" id="singlePosMax" type="number" step="0.1" value="' + STATE.riskLimits.singlePositionMax + '"></div>' +
+      '<div><label class="form-label">Sector Max (%)</label><input class="form-input" id="sectorMax" type="number" step="0.1" value="' + STATE.riskLimits.sectorMax + '"></div>' +
+    '</div>' +
+    '<div style="height:20px;"></div>' +
+    '<button class="btn btn-primary" onclick="updateRiskLimits()">Update</button>' +
+  '</div>' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">Breaches</h3>' +
+      '<button class="btn btn-outline" onclick="checkBreaches()">Check Now</button>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    breachesHtml +
+  '</div>';
+}
+
+function updateRiskLimits(){
+  var spm = parseFloat(document.getElementById('singlePosMax').value);
+  var sm = parseFloat(document.getElementById('sectorMax').value);
+  if(isNaN(spm) || isNaN(sm) || spm<=0 || sm<=0){ alert("Please enter valid limit percentages."); return; }
+  STATE.riskLimits.singlePositionMax = spm;
+  STATE.riskLimits.sectorMax = sm;
+  STATE.lastBreaches = null;
+  render();
+}
+
+function checkBreaches(){
+  var breaches = [];
+  var limits = STATE.riskLimits;
+  STATE.portfolio.forEach(function(p){
+    if(p.weight > limits.singlePositionMax){
+      breaches.push({
+        type:'POSITION SIZE', severity:'CRITICAL', subject:p.ticker, value:p.weight, limit:limits.singlePositionMax,
+        action:'Reduce position by ' + (p.weight-limits.singlePositionMax).toFixed(1) + '%'
+      });
+    }
+  });
+  var sectorWeights = {};
+  STATE.portfolio.forEach(function(p){
+    var c = getCompany(p.ticker);
+    sectorWeights[c.sector] = (sectorWeights[c.sector]||0) + p.weight;
+  });
+  Object.keys(sectorWeights).forEach(function(sector){
+    var w = sectorWeights[sector];
+    if(w > limits.sectorMax){
+      var excess = w - limits.sectorMax;
+      breaches.push({
+        type:'SECTOR CONCENTRATION', severity: excess>30 ? 'CRITICAL':'HIGH', subject:sector, value:w, limit:limits.sectorMax,
+        action:'Reduce ' + sector + ' exposure by ' + excess.toFixed(1) + '%'
+      });
+    }
+  });
+  STATE.lastBreaches = breaches;
+  render();
+}
+/* ============================================================
+   REPORTS TAB
+   ============================================================ */
+function renderReportsTab(){
+  var reportHtml = STATE.currentReport ? renderReportDisplay(STATE.currentReport) : '';
+  return '' +
+  '<h1 class="page-title">Reports</h1>' +
+  '<p class="page-sub">Generate reports</p>' +
+  '<div class="card">' +
+    '<h3>Generate</h3>' +
+    '<div class="card-divider"></div>' +
+    '<div class="form-row2">' +
+      '<div><label class="form-label">Type</label>' +
+        '<select class="form-input" id="reportTypeSelect">' +
+          ['CCAR','DFAST','Internal Risk Report'].map(function(t){
+            return '<option value="'+t+'"'+(t===STATE.reportType?' selected':'')+'>'+t+'</option>';
+          }).join('') +
+        '</select>' +
+      '</div>' +
+      '<div><label class="form-label">Period</label><input class="form-input" id="reportPeriodInput" value="' + esc(STATE.reportPeriod) + '"></div>' +
+    '</div>' +
+    '<div style="height:20px;"></div>' +
+    '<button class="btn btn-primary" onclick="generateReport()">Generate</button> ' +
+    '<button class="btn btn-green" onclick="exportReportPdf()">Export PDF</button>' +
+  '</div>' +
+  reportHtml;
+}
+
+function generateReport(){
+  if(STATE.portfolio.length===0){ alert("Please add at least one company to the portfolio before generating a report."); return; }
+  var scenarioIds = selectedScenarioIdsSorted();
+  if(scenarioIds.length===0){ alert("Please select at least one scenario from the Scenarios tab."); return; }
+
+  STATE.reportType = document.getElementById('reportTypeSelect').value;
+  STATE.reportPeriod = document.getElementById('reportPeriodInput').value || 'Q4 2025';
+
+  var totalWeight = totalPortfolioWeight();
+  var pr = computePortfolioResult();
+
+  function avgForSeverity(sev){
+    var vals = [];
+    STATE.portfolio.forEach(function(p){
+      scenarioIds.forEach(function(sid){
+        var s = findScenario(sid);
+        if(s.severity===sev) vals.push(computeRisk(p.ticker, sid));
+      });
+    });
+    return vals.length ? +avg(vals).toFixed(1) : null;
+  }
+  var baselineAvg = avgForSeverity('BASELINE');
+  var adverseAvg = avgForSeverity('ADVERSE');
+  var severeAvg = avgForSeverity('SEVERE');
+
+  var capitalBuffer = +clamp(25 - pr.totalRisk*0.15, 2, 25).toFixed(1);
+  var overallStatus = pr.totalRisk < 60 ? 'PASS' : 'FAIL';
+
+  var report = {
+    reportId: uuidv4(),
+    reportType: STATE.reportType,
+    testPeriod: STATE.reportPeriod,
+    generatedBy: STATE.user.username,
+    generationDate: new Date().toLocaleString(),
+    portfolioSize: STATE.portfolio.length,
+    scenariosTested: scenarioIds.length,
+    overallStatus: overallStatus,
+    capitalBuffer: capitalBuffer,
+    baselineAvg: baselineAvg, adverseAvg: adverseAvg, severeAvg: severeAvg,
+    totalPortfolioRisk: pr.totalRisk,
+    portfolio: STATE.portfolio.map(function(p){ return {ticker:p.ticker, sector:getCompany(p.ticker).sector, weight:p.weight}; })
+  };
+  STATE.currentReport = report;
+  render();
+}
+
+function renderReportDisplay(r){
+  var badgeCls = r.overallStatus==='PASS' ? 'badge-green' : 'badge-red';
+  var execCls = r.overallStatus==='PASS' ? '' : ' fail';
+
+  var findings = [];
+  findings.push('Baseline scenario average risk: ' + (r.baselineAvg!==null ? r.baselineAvg.toFixed(1) : 'N/A'));
+  findings.push('Adverse scenario average risk: ' + (r.adverseAvg!==null ? r.adverseAvg.toFixed(1) : 'N/A'));
+  findings.push('Severely adverse scenario risk: ' + (r.severeAvg!==null ? r.severeAvg.toFixed(1) : 'N/A'));
+  findings.push('Total portfolio positions: ' + r.portfolioSize);
+  findings.push('All models validated with ROC-AUC &gt; 0.80');
+
+  var portfolioRows = r.portfolio.map(function(p){
+    return '<tr><td><b>'+p.ticker+'</b></td><td>'+p.sector+'</td><td>'+p.weight.toFixed(1)+'%</td></tr>';
+  }).join('');
+
+  return '' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">' + esc(r.reportType) + ' Regulatory Report</h3>' +
+      '<span class="badge ' + badgeCls + '">' + r.overallStatus + '</span>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    '<div class="kv-list">' +
+      kvRow('Report ID', r.reportId) +
+      kvRow('Report Type', r.reportType) +
+      kvRow('Test Period', r.testPeriod) +
+      kvRow('Generated By', r.generatedBy) +
+      kvRow('Generation Date', r.generationDate) +
+      kvRow('Portfolio Size', r.portfolioSize + ' positions') +
+      kvRow('Scenarios Tested', r.scenariosTested) +
+    '</div>' +
+    '<h3 style="margin-top:26px;">Executive Summary</h3>' +
+    '<div class="exec-summary' + execCls + '">' +
+      '<b>Overall Status: ' + r.overallStatus + '</b>' +
+      '<div>Capital Buffer: ' + r.capitalBuffer.toFixed(1) + '% above regulatory minimum</div>' +
+    '</div>' +
+    '<h3 style="margin-top:22px;">Key Findings</h3>' +
+    '<ul class="bullets">' + findings.map(function(f){ return '<li>'+f+'</li>'; }).join('') + '</ul>' +
+    '<h3 style="margin-top:22px;">Data Sources</h3>' +
+    '<ul class="bullets"><li>Yahoo Finance Market Data</li><li>Company Financial Statements</li><li>Historical Crisis Periods (2008, 2020)</li></ul>' +
+    '<h3 style="margin-top:22px;">Model Performance Metrics</h3>' +
+    '<div class="kv-list">' +
+      kvRow('Model 1 (VAE)', 'Scenario coverage: 94%') +
+      kvRow('Model 2 (LightGBM)', 'R&sup2; &gt; 0.75, Directional accuracy: 82%') +
+      kvRow('Model 3 (SVM)', 'ROC-AUC: 0.82, Precision@10%: 0.81') +
+    '</div>' +
+    '<p style="font-size:14px; margin-top:12px;"><b>Independent Validation:</b> Completed by Model Risk Team</p>' +
+    '<h3 style="margin-top:22px;">Portfolio Composition</h3>' +
+    '<table class="data-table"><tr><th>Company</th><th>Sector</th><th>Weight (%)</th></tr>' + portfolioRows + '</table>' +
+    '<p style="font-size:14px; color:var(--text-light); margin-top:22px;">Report generated successfully. Use the "Export to PDF" button above to download, or click below to download raw data.</p>' +
+    '<button class="btn btn-primary" onclick="downloadReportJson()">Download JSON</button> ' +
+    '<button class="btn btn-outline" onclick="clearReport()">Clear Report</button>' +
+  '</div>';
+}
+function kvRow(label, val){
+  return '<div class="kv-row"><div class="kv-label">'+label+'</div><div class="kv-val">'+val+'</div></div>';
+}
+
+function downloadReportJson(){
+  if(!STATE.currentReport) return;
+  var blob = new Blob([JSON.stringify(STATE.currentReport, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = STATE.currentReport.reportType + '_report_' + STATE.currentReport.reportId.slice(0,8) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function exportReportPdf(){
+  alert("Exporting to PDF... in production this would generate a downloadable, print-ready PDF of the report.");
+}
+function clearReport(){
+  STATE.currentReport = null;
+  render();
+}
+/* ============================================================
+   USERS TAB
+   ============================================================ */
+function renderUsersTab(){
+  var rows = STATE.users.map(function(u, idx){
+    var roleBadge = 'badge-blue';
+    var actionHtml;
+    if(u.username==='admin'){
+      actionHtml = '&mdash;';
+    } else {
+      actionHtml = u.active
+        ? '<button class="btn btn-danger btn-sm" onclick="toggleUserActive('+idx+')">Deactivate</button>'
+        : '<button class="btn btn-green btn-sm" onclick="toggleUserActive('+idx+')">Activate</button>';
+    }
+    return '<tr><td><b>'+esc(u.username)+'</b></td><td>'+esc(u.email)+'</td>' +
+      '<td><span class="badge '+roleBadge+'">'+esc(u.role)+'</span></td>' +
+      '<td>'+esc(u.lastLogin)+'</td><td>'+actionHtml+'</td></tr>';
+  }).join('');
+
+  return '' +
+  '<h1 class="page-title">User Management</h1>' +
+  '<p class="page-sub">Admin only</p>' +
+  '<div class="card">' +
+    '<div class="toolbar">' +
+      '<h3 style="margin:0;">Users</h3>' +
+      '<button class="btn btn-outline btn-sm" onclick="render()">Refresh</button>' +
+    '</div>' +
+    '<div class="card-divider"></div>' +
+    '<table class="data-table">' +
+      '<tr><th>Username</th><th>Email</th><th>Role</th><th>Last Login</th><th>Action</th></tr>' +
+      rows +
+    '</table>' +
+  '</div>' +
+  '<div class="card">' +
+    '<h3>Create User</h3>' +
+    '<div class="card-divider"></div>' +
+    '<div class="form-row2">' +
+      '<div><label class="form-label">Username</label><input class="form-input" id="newUserUsername"></div>' +
+      '<div><label class="form-label">Email</label><input class="form-input" id="newUserEmail"></div>' +
+    '</div>' +
+    '<div style="height:20px;"></div>' +
+    '<div class="form-row2">' +
+      '<div><label class="form-label">Password</label><input class="form-input" id="newUserPassword" type="password"></div>' +
+      '<div><label class="form-label">Role</label>' +
+        '<select class="form-input" id="newUserRole">' +
+          ['ADMIN','RISK MANAGER','ANALYST','VIEWER','AUDITOR'].map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('') +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<div style="height:20px;"></div>' +
+    '<button class="btn btn-primary" onclick="createUser()">Create User</button>' +
+  '</div>';
+}
+
+function toggleUserActive(idx){
+  STATE.users[idx].active = !STATE.users[idx].active;
+  render();
+}
+function createUser(){
+  var username = document.getElementById('newUserUsername').value.trim();
+  var email = document.getElementById('newUserEmail').value.trim();
+  var role = document.getElementById('newUserRole').value;
+  if(!username || !email){ alert("Please provide a username and email."); return; }
+  for(var i=0;i<STATE.users.length;i++){
+    if(STATE.users[i].username===username){ alert("Username already exists."); return; }
+  }
+  STATE.users.push({username:username, email:email, role:role, lastLogin:'Never', active:true});
+  render();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+render();
+</script>
+</body>
+</html>
